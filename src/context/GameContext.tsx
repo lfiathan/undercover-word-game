@@ -104,11 +104,11 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
         }
       }
 
-      return {
+      return resolveVotesIfComplete({
         ...prev,
         players: newPlayers,
         speakingOrder: newSpeakingOrder,
-      };
+      });
     });
   };
 
@@ -257,43 +257,59 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
     });
   };
 
-  const submitVote = (voterId: string, targetId: string) => {
-    setGameState((prev) => {
-      const newVotingResults = { ...(prev.votingResults || {}), [voterId]: targetId };
-      const activePlayers = prev.players.filter(p => !p.isEliminated);
-      const allVoted = activePlayers.every(p => p.id in newVotingResults);
+  /**
+   * Close the vote once everyone still in the round has voted.
+   *
+   * Run after each vote AND whenever a player leaves: a player dropping out
+   * mid-vote used to leave the round waiting forever for a vote that could
+   * never arrive. Votes cast by or for someone who is gone are dropped, so a
+   * ghost vote cannot decide the elimination either.
+   */
+  const resolveVotesIfComplete = (state: GameState): GameState => {
+    if (state.phase !== "voting") return state;
 
-      if (allVoted) {
-        // Elimination logic
-        const voteCount: Record<string, number> = {};
-        Object.values(newVotingResults).forEach(id => {
-          voteCount[id] = (voteCount[id] || 0) + 1;
-        });
+    const activePlayers = state.players.filter((p) => !p.isEliminated);
+    if (activePlayers.length === 0) return state;
 
-        // Find the highest vote count
-        const maxVotes = Math.max(...Object.values(voteCount));
+    const liveIds = new Set(activePlayers.map((p) => p.id));
+    const votes = Object.fromEntries(
+      Object.entries(state.votingResults ?? {}).filter(
+        ([voterId, targetId]) => liveIds.has(voterId) && liveIds.has(targetId),
+      ),
+    );
 
-        // Get all players with the highest votes
-        const mostVotedPlayers = Object.entries(voteCount)
-          .filter(([_, votes]) => votes === maxVotes)
-          .map(([id]) => id);
+    if (!activePlayers.every((p) => p.id in votes)) {
+      return { ...state, votingResults: votes };
+    }
 
-        // Randomly select one of the most voted players
-        const eliminatedId = mostVotedPlayers[Math.floor(Math.random() * mostVotedPlayers.length)];
-
-        return {
-          ...prev,
-          votingResults: newVotingResults,
-          phase: "results",
-          lastEliminatedId: eliminatedId,
-        };
-      }
-
-      return {
-        ...prev,
-        votingResults: newVotingResults
-      };
+    const voteCount: Record<string, number> = {};
+    Object.values(votes).forEach((id) => {
+      voteCount[id] = (voteCount[id] || 0) + 1;
     });
+
+    const maxVotes = Math.max(...Object.values(voteCount));
+    const mostVotedPlayers = Object.entries(voteCount)
+      .filter(([, count]) => count === maxVotes)
+      .map(([id]) => id);
+
+    const eliminatedId =
+      mostVotedPlayers[Math.floor(Math.random() * mostVotedPlayers.length)];
+
+    return {
+      ...state,
+      votingResults: votes,
+      phase: "results",
+      lastEliminatedId: eliminatedId,
+    };
+  };
+
+  const submitVote = (voterId: string, targetId: string) => {
+    setGameState((prev) =>
+      resolveVotesIfComplete({
+        ...prev,
+        votingResults: { ...(prev.votingResults || {}), [voterId]: targetId },
+      }),
+    );
   };
 
   const eliminatePlayer = (eliminatedId: string) => {
