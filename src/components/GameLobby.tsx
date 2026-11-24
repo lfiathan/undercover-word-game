@@ -3,6 +3,7 @@ import { usePeer } from "../context/PeerContext";
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
 import { PlayerList } from "./shared/PlayerList";
+import { VisitorStrip } from "./shared/VisitorStrip";
 import { useTranslation } from "react-i18next";
 
 export const GameLobby = () => {
@@ -28,6 +29,8 @@ export const GameLobby = () => {
         lastEliminatedId={gameState.lastEliminatedId}
         showScores={gameState.players.some((p) => p.score > 0)}
       />
+
+      <VisitorStrip />
 
       {isHost && (
         <Button

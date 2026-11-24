@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { WORD_LANGUAGES } from "@/config/wordLanguages";
+import { VisitorStrip } from "./shared/VisitorStrip";
 
 type StepperProps = {
   label: string;
@@ -142,10 +143,13 @@ export const GameSetup = () => {
       </section>
 
       <div className={isMobile ? "space-y-5" : "grid grid-cols-2 items-start gap-5"}>
-        <PlayerList
-          players={gameState.players}
-          showScores={gameState.players.some((p) => p.score > 0)}
-        />
+        <div className="space-y-3">
+          <PlayerList
+            players={gameState.players}
+            showScores={gameState.players.some((p) => p.score > 0)}
+          />
+          <VisitorStrip />
+        </div>
 
         <div className="space-y-5">
           <section className="surface p-5">

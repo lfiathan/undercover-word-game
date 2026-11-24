@@ -12,6 +12,10 @@ export default {
     language: "Bahasa",
     welcome: "Selamat datang di Undercover",
     multiplayerSetup: {
+      watchGame: "Tonton permainan",
+      watchSubtitle: "Ikut menyimak tanpa ikut bermain",
+      watchExplainer: "Sebagai penonton kamu tidak ikut bermain. Kamu bisa melihat kata rahasia dan peran semua pemain, dan pemain akan tahu kalau kamu sedang menonton.",
+      startWatching: "Mulai menonton",
       tagline: "Satu kata. Satu penyusup. Temukan sebelum kamu ketahuan.",
       hostSubtitle: "Buat ruangan dan undang teman-temanmu",
       joinSubtitle: "Masukkan kode dari host",
@@ -100,6 +104,7 @@ export default {
       mrWhiteGuessed: "Tebakan Mr. White:",
     },
     playerList: {
+      watching: "Menonton ({{count}})",
       players: "Pemain ({{count}})",
       points: "POIN",
     },
@@ -110,6 +115,8 @@ export default {
       spectator: "Penonton",
     },
     peer: {
+      visitorJoined: "{{name}} sedang menonton",
+      watching: "Kamu sedang menonton permainan ini",
       playerReconnecting: "{{name}} terputus - tempatnya ditahan dulu...",
       playerReturned: "{{name}} sudah kembali!",
       rejoining: "Bergabung kembali ke permainan {{code}}...",
@@ -124,6 +131,18 @@ export default {
       gameHosted: "Permainan dibuat! Bagikan kode {{id}} ke teman-temanmu.",
       connected: "Terhubung ke permainan!",
       hostClosedConnection: "Host menutup permainan",
+    },
+    visitor: {
+      badge: "Menonton",
+      subtitle: "Kamu tidak ikut bermain. Kamu bisa melihat semua kata dan peran.",
+      waiting: "Menunggu host memulai permainan",
+      civilians: "Warga",
+      undercover: "Undercover",
+      noWord: "tanpa kata",
+      votedFor: "memilih {{name}}",
+      votesReceived_one: "{{count}} suara",
+      votesReceived_other: "{{count}} suara",
+      eliminated: "tereliminasi",
     },
     wordPairs: wordPairs,
   }

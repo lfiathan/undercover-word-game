@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState } from "react";
-import { GameState, Player, GamePhase, PlayerRole, RoleDistribution } from "../types/game";
+import { GameState, Player, GamePhase, PlayerRole, RoleDistribution, Visitor } from "../types/game";
 import { toast } from "sonner";
 import { calculateDefaultDistribution } from "../config/roleDistribution";
 import { useTranslation } from "react-i18next";
@@ -11,6 +11,8 @@ interface GameContextType {
   setGameState: React.Dispatch<React.SetStateAction<GameState>>;
   addPlayer: (name: string, id: string) => void;
   removePlayer: (id: string) => void;
+  addVisitor: (name: string, id: string) => void;
+  removeVisitor: (id: string) => void;
   startGame: () => void;
   setPhase: (phase: GamePhase) => void;
   submitVote: (voterId: string, targetId: string) => void;
@@ -39,6 +41,7 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
     roleDistribution: calculateDefaultDistribution(4),
     // Start on the pack matching the host's own language; they can change it.
     wordLanguage: resolveWordLanguage(i18n.resolvedLanguage ?? i18n.language),
+    visitors: [],
   }));
 
   const addPlayer = (name: string, id: string) => {
@@ -62,6 +65,21 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
         players: newPlayers,
         roleDistribution: calculateDefaultDistribution(newPlayers.length),
       };
+    });
+  };
+
+  const addVisitor = (name: string, id: string) => {
+    setGameState((prev) => {
+      if (prev.visitors?.some((v) => v.id === id)) return prev;
+      const visitor: Visitor = { id, name };
+      return { ...prev, visitors: [...(prev.visitors ?? []), visitor] };
+    });
+  };
+
+  const removeVisitor = (id: string) => {
+    setGameState((prev) => {
+      if (!prev.visitors?.some((v) => v.id === id)) return prev;
+      return { ...prev, visitors: prev.visitors.filter((v) => v.id !== id) };
     });
   };
 
@@ -326,6 +344,7 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
         mrWhiteGuess: undefined,
         roleDistribution: prev.roleDistribution,
         wordLanguage: prev.wordLanguage,
+        visitors: prev.visitors ?? [],
       };
     });
   };
@@ -352,6 +371,8 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
         setGameState,
         addPlayer,
         removePlayer,
+        addVisitor,
+        removeVisitor,
         startGame,
         setPhase,
         submitVote,

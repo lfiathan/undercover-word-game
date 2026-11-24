@@ -34,8 +34,9 @@ Undercover word game
 >
 > Also changed: short 6-character room codes instead of long peer ids,
 > auto-rejoin after a reload (your word and seat are kept), a grace period so
-> a player who drops mid-round is not eliminated, and joining that fails with
-> an actual reason instead of hanging.
+> a player who drops mid-round is not eliminated, joining that fails with an
+> actual reason instead of hanging, and a **visitor** role for people who want
+> to follow a game without playing it.
 >
 > See [How multiplayer works](#how-multiplayer-works) and
 > [Deploy your own copy](#deploy-your-own-copy).
@@ -162,6 +163,23 @@ consistent: one card treatment, one button language, large tap targets, and
 layouts that are designed for a phone first. `public/og.html` is the source for
 the link-preview image -- open it at 1200x630 and screenshot it to regenerate
 `public/og-image.jpg`.
+
+## Visitors
+
+A visitor watches a room without taking a seat in it. They pick **Watch a
+game** on the start screen, enter the room code, and get a single screen that
+shows the whole round at once: the word pair, every player's secret word and
+role, what each of them said, and who voted for whom as the votes come in.
+
+Visitors are outside the game in every sense that matters to it. They are not
+dealt a word, they do not vote, they are not counted towards the four-player
+minimum or the role distribution, and a visitor leaving never ends a round.
+They are also not secret: everyone in the room sees a "Watching" list with
+their names, because someone who can see every word should not be invisible.
+
+Useful for whoever is running the evening, for someone who joined too late for
+this round, or for a player who was eliminated and would rather see the whole
+board than wait it out.
 
 ## How multiplayer works
 

@@ -9,16 +9,23 @@ import { MultiplayerSetup } from "../components/MultiplayerSetup";
 import { VotingScreen } from "../components/VotingScreen";
 import { Results } from "../components/Results";
 import { GameEnd } from "../components/GameEnd";
+import { VisitorView } from "../components/VisitorView";
 import { SoundProvider } from "@/context/SoundContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { VenetianMask } from "lucide-react";
 
 const GameContent = () => {
   const { gameState } = useGame();
-  const { hostId } = usePeer();
+  const { hostId, isVisitor } = usePeer();
 
   if (!hostId) {
     return <MultiplayerSetup />;
+  }
+
+  // Visitors follow every phase from one screen rather than being walked
+  // through the players' flow.
+  if (isVisitor) {
+    return <VisitorView />;
   }
 
   if (gameState.phase === "setup" && gameState.currentRound === 0) {

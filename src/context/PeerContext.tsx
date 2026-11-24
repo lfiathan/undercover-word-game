@@ -42,10 +42,12 @@ interface PeerContextType {
   peer: { id: string } | null;
   hostId: string | null;
   isHost: boolean;
+  /** Watching the room without taking a seat. */
+  isVisitor: boolean;
   status: ConnectionStatus;
   isBusy: boolean;
   hostGame: (username: string) => void;
-  joinGame: (roomCode: string, username: string) => void;
+  joinGame: (roomCode: string, username: string, asVisitor?: boolean) => void;
   leaveGame: () => void;
   sendGameState: (state: GameState) => void;
   sendToHost: (data: Record<string, unknown>) => void;
@@ -56,7 +58,7 @@ const PeerContext = createContext<PeerContextType | undefined>(undefined);
 const SELF_ID_KEY = "ucw:self-id";
 const REJOIN_KEY = "ucw:rejoin";
 
-type Rejoin = { code: string; username: string };
+type Rejoin = { code: string; username: string; asVisitor?: boolean };
 
 function readRejoin(): Rejoin | null {
   try {
@@ -103,6 +105,8 @@ export const PeerProvider = ({ children }: { children: React.ReactNode }) => {
     setGameState,
     addPlayer,
     removePlayer,
+    addVisitor,
+    removeVisitor,
     submitMrWhiteGuess,
     submitVote,
     submitDescription,
@@ -111,6 +115,7 @@ export const PeerProvider = ({ children }: { children: React.ReactNode }) => {
   const [selfId] = useState(getSelfId);
   const [hostId, setHostId] = useState<string | null>(null);
   const [isHost, setIsHost] = useState(false);
+  const [isVisitor, setIsVisitor] = useState(false);
   const [status, setStatus] = useState<ConnectionStatus>("idle");
   const [isBusy, setIsBusy] = useState(false);
 
@@ -152,6 +157,7 @@ export const PeerProvider = ({ children }: { children: React.ReactNode }) => {
     }
     setHostId(null);
     setIsHost(false);
+    setIsVisitor(false);
     setStatus("idle");
   }, []);
 
@@ -184,6 +190,13 @@ export const PeerProvider = ({ children }: { children: React.ReactNode }) => {
    */
   const handleDeparture = useCallback(
     (peerId: string) => {
+      // Visitors hold no seat and affect no round, so they just go.
+      const visitor = gameStateRef.current.visitors?.find((v) => v.id === peerId);
+      if (visitor) {
+        removeVisitor(peerId);
+        return;
+      }
+
       const player = gameStateRef.current.players.find((p) => p.id === peerId);
       if (!player) return;
 
@@ -206,7 +219,7 @@ export const PeerProvider = ({ children }: { children: React.ReactNode }) => {
         setTimeout(drop, TRANSPORT.disconnectGraceMs),
       );
     },
-    [removePlayer, t],
+    [removePlayer, removeVisitor, t],
   );
 
   const handleHostMessage = useCallback(
@@ -224,6 +237,22 @@ export const PeerProvider = ({ children }: { children: React.ReactNode }) => {
 
       switch (msg.type) {
         case "JOIN_GAME": {
+          const name = String(data.username ?? t("peer.unknownPlayer"));
+
+          if (data.asVisitor) {
+            const knownVisitor = gameStateRef.current.visitors?.some(
+              (v) => v.id === msg.from,
+            );
+            if (knownVisitor) {
+              broadcastState(gameStateRef.current);
+              break;
+            }
+            playSound("/sounds/player-joined.mp3");
+            addVisitor(name, msg.from);
+            toast.info(t("peer.visitorJoined", { name }));
+            break;
+          }
+
           const known = gameStateRef.current.players.some((p) => p.id === msg.from);
           if (known) {
             // A refresh or a reconnect: same seat, just resend the state.
@@ -231,7 +260,7 @@ export const PeerProvider = ({ children }: { children: React.ReactNode }) => {
             break;
           }
           playSound("/sounds/player-joined.mp3");
-          addPlayer(String(data.username ?? t("peer.unknownPlayer")), msg.from);
+          addPlayer(name, msg.from);
           break;
         }
         case "PING": {
@@ -261,6 +290,7 @@ export const PeerProvider = ({ children }: { children: React.ReactNode }) => {
     },
     [
       addPlayer,
+      addVisitor,
       broadcastState,
       handleDeparture,
       playSound,
@@ -362,7 +392,7 @@ export const PeerProvider = ({ children }: { children: React.ReactNode }) => {
   );
 
   const joinGame = useCallback(
-    async (rawCode: string, username: string) => {
+    async (rawCode: string, username: string, asVisitor = false) => {
       if (relayRef.current || isBusy) return;
 
       const code = normalizeRoomCode(rawCode);
@@ -416,11 +446,11 @@ export const PeerProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       let attempts = 0;
-      relay.send("JOIN_GAME", { username });
+      relay.send("JOIN_GAME", { username, asVisitor });
       const retry = setInterval(() => {
         attempts += 1;
         if (attempts > 5) return;
-        relay.send("JOIN_GAME", { username });
+        relay.send("JOIN_GAME", { username, asVisitor });
       }, 3000);
 
       const timeout = new Promise<"timeout">((resolve) =>
@@ -445,10 +475,11 @@ export const PeerProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       // Remember the seat so an accidental refresh can walk straight back in.
-      writeRejoin({ code, username });
+      writeRejoin({ code, username, asVisitor });
       setHostId(code);
       setIsHost(false);
-      toast.success(t("peer.connected"));
+      setIsVisitor(asVisitor);
+      toast.success(asVisitor ? t("peer.watching") : t("peer.connected"));
     },
     [handleClientMessage, isBusy, onStatusChange, selfId, t, teardown],
   );
@@ -491,7 +522,7 @@ export const PeerProvider = ({ children }: { children: React.ReactNode }) => {
     const saved = readRejoin();
     if (saved && !relayRef.current) {
       toast.info(t("peer.rejoining", { code: saved.code }));
-      void joinGame(saved.code, saved.username);
+      void joinGame(saved.code, saved.username, saved.asVisitor ?? false);
     }
 
     // Say goodbye on tab close so the others see you leave immediately.
@@ -514,10 +545,12 @@ export const PeerProvider = ({ children }: { children: React.ReactNode }) => {
         peer: { id: selfId },
         hostId,
         isHost,
+        isVisitor,
         status,
         isBusy,
         hostGame: (username: string) => void hostGame(username),
-        joinGame: (code: string, username: string) => void joinGame(code, username),
+        joinGame: (code: string, username: string, asVisitor = false) =>
+          void joinGame(code, username, asVisitor),
         leaveGame,
         sendGameState,
         sendToHost,

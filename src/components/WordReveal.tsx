@@ -8,6 +8,7 @@ import { Input } from "./ui/input";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { Dices, EyeOff, Loader2, SendHorizontal, Vote } from "lucide-react";
+import { VisitorStrip } from "./shared/VisitorStrip";
 
 export const WordReveal = () => {
   const { gameState, setPhase, submitDescription, rerollWords } = useGame();
@@ -183,6 +184,8 @@ export const WordReveal = () => {
           currentPlayerId={peer.id}
           speakingOrder={true}
         />
+
+        <VisitorStrip />
       </div>
 
       {isHost && (

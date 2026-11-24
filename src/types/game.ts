@@ -15,6 +15,16 @@ export type Player = {
   submittedDescription?: string;
 };
 
+/**
+ * Someone in the room who is not playing: no word, no role, no vote, and not
+ * counted towards the player total. They see everything (see VisitorView),
+ * which is why players are always shown who is watching.
+ */
+export type Visitor = {
+  id: string;
+  name: string;
+};
+
 export type GamePhase = "setup" | "wordReveal" | "discussion" | "voting" | "results" | "gameEnd";
 
 export type GameState = {
@@ -31,4 +41,6 @@ export type GameState = {
   roleDistribution: RoleDistribution;
   /** Which word pack the host deals secret words from (see config/wordLanguages). */
   wordLanguage: string;
+  /** People watching the room without taking a seat. */
+  visitors: Visitor[];
 };

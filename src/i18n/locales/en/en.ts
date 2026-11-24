@@ -12,6 +12,10 @@ export default {
     language: "Language",
     welcome: "Welcome to Undercover",
     multiplayerSetup: {
+      watchGame: "Watch a game",
+      watchSubtitle: "Follow along without playing",
+      watchExplainer: "As a visitor you take no seat in the game. You see every player's secret word and role, and players are shown that you are watching.",
+      startWatching: "Start watching",
       tagline: "One word. One impostor. Find them before they find you.",
       hostSubtitle: "Create a room and invite your friends",
       joinSubtitle: "Enter a code from the host",
@@ -100,6 +104,7 @@ export default {
       mrWhiteGuessed: "Mr. White guessed:",
     },
     playerList: {
+      watching: "Watching ({{count}})",
       players: "Players ({{count}})",
       points: "PTS",
     },
@@ -110,6 +115,8 @@ export default {
       spectator: "Spectator",
     },
     peer: {
+      visitorJoined: "{{name}} is watching",
+      watching: "You're watching this game",
       playerReconnecting: "{{name}} lost connection - holding their seat...",
       playerReturned: "{{name}} is back!",
       rejoining: "Rejoining game {{code}}...",
@@ -124,6 +131,18 @@ export default {
       gameHosted: "Game created! Share the code {{id}} with your friends.",
       connected: "Connected to game!",
       hostClosedConnection: "Host closed connection",
+    },
+    visitor: {
+      badge: "Watching",
+      subtitle: "You take no seat. You see every word and role.",
+      waiting: "Waiting for the host to start",
+      civilians: "Civilians",
+      undercover: "Undercover",
+      noWord: "no word",
+      votedFor: "voted for {{name}}",
+      votesReceived_one: "{{count}} vote",
+      votesReceived_other: "{{count}} votes",
+      eliminated: "eliminated",
     },
     wordPairs: wordPairs,
   }

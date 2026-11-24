@@ -12,6 +12,10 @@ export default {
     welcome: "Willkommen bei Undercover",
     language: "Sprache",
     multiplayerSetup: {
+      watchGame: "Spiel zuschauen",
+      watchSubtitle: "Mitverfolgen, ohne mitzuspielen",
+      watchExplainer: "Als Besucher spielst du nicht mit. Du siehst das geheime Wort und die Rolle jedes Spielers, und den Spielern wird angezeigt, dass du zuschaust.",
+      startWatching: "Zuschauen",
       tagline: "Ein Wort. Ein Eindringling. Finde ihn, bevor er dich findet.",
       hostSubtitle: "Erstelle einen Raum und lade deine Freunde ein",
       joinSubtitle: "Gib den Code vom Host ein",
@@ -100,6 +104,7 @@ export default {
       mrWhiteGuessed: "Mr. White hat geraten:",
     },
     playerList: {
+      watching: "Zuschauer ({{count}})",
       players: "Spieler ({{count}})",
       points: "PUNKTE",
     },
@@ -110,6 +115,8 @@ export default {
       spectator: "Zuschauer",
     },
     peer: {
+      visitorJoined: "{{name}} schaut zu",
+      watching: "Du schaust diesem Spiel zu",
       playerReconnecting: "{{name}} hat die Verbindung verloren - Platz wird freigehalten...",
       playerReturned: "{{name}} ist zurück!",
       rejoining: "Trete Spiel {{code}} wieder bei...",
@@ -124,6 +131,18 @@ export default {
       gameHosted: "Spiel erstellt! Teile den Code {{id}} mit deinen Freunden.",
       connected: "Mit dem Spiel verbunden!",
       hostClosedConnection: "Der Host hat die Verbindung geschlossen",
+    },
+    visitor: {
+      badge: "Zuschauen",
+      subtitle: "Du spielst nicht mit. Du siehst jedes Wort und jede Rolle.",
+      waiting: "Warten auf den Start durch den Host",
+      civilians: "Zivilisten",
+      undercover: "Undercover",
+      noWord: "kein Wort",
+      votedFor: "hat für {{name}} gestimmt",
+      votesReceived_one: "{{count}} Stimme",
+      votesReceived_other: "{{count}} Stimmen",
+      eliminated: "ausgeschieden",
     },
     wordPairs: wordPairs
   }
