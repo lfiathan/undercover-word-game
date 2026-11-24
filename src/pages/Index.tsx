@@ -79,7 +79,7 @@ const Index = () => {
         <SoundProvider>
           <GameProvider>
             <PeerProvider>
-              <main className="flex-1">
+              <main className="flex flex-1 flex-col">
                 <GameContent />
               </main>
             </PeerProvider>
