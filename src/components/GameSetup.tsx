@@ -1,7 +1,15 @@
 import { useGame } from "../context/GameContext";
 import { usePeer } from "../context/PeerContext";
 import { Button } from "@/components/ui/button";
-import { Link, Hash, Plus, Minus } from "lucide-react";
+import { Link, Hash, Plus, Minus, Languages } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { WORD_LANGUAGES } from "@/config/wordLanguages";
 import { toast } from "sonner";
 import { PlayerList } from "./shared/PlayerList";
 import { Card } from "@/components/ui/card";
@@ -10,7 +18,7 @@ import { distributionMeetsLimits } from "@/config/roleDistribution";
 import { useTranslation } from "react-i18next";
 
 export const GameSetup = () => {
-  const { gameState, startGame, updateRoleDistribution } = useGame();
+  const { gameState, startGame, updateRoleDistribution, setWordLanguage } = useGame();
   const { hostId, isHost } = usePeer();
   const isMobile = useIsMobile();
   const { t } = useTranslation();
@@ -53,6 +61,37 @@ export const GameSetup = () => {
         />
 
         <div className="space-y-6">
+          <Card className="p-6 bg-white/5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Languages className="h-5 w-5 text-white/70" />
+                <h3 className="text-lg font-semibold text-white">
+                  {t("gameSetup.wordLanguage")}
+                </h3>
+              </div>
+              <Select
+                value={gameState.wordLanguage ?? "en"}
+                onValueChange={setWordLanguage}
+                disabled={!isHost}
+              >
+                <SelectTrigger
+                  className="h-9 w-[170px] border-white/10 bg-black/30 text-white disabled:opacity-60"
+                  aria-label={t("gameSetup.wordLanguage")}
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {WORD_LANGUAGES.map((language) => (
+                    <SelectItem key={language.code} value={language.code}>
+                      {language.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <p className="mt-3 text-sm text-white/50">{t("gameSetup.wordLanguageHint")}</p>
+          </Card>
+
           <Card className="p-6 bg-white/5">
             <h3 className="text-lg font-semibold text-white mb-6">{t("gameSetup.roleDistribution")}</h3>
             <div className="space-y-6">

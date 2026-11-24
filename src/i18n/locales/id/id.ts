@@ -25,6 +25,8 @@ export default {
       enterUsernameError: "Masukkan nama kamu dulu!",
     },
     gameSetup: {
+      wordLanguage: "Bahasa kata",
+      wordLanguageHint: "Host menentukan bahasa kata rahasianya. Menu tetap mengikuti bahasa masing-masing pemain.",
       title: "Pengaturan Permainan",
       shareLabel: "Kode permainan - ketuk untuk menyalin tautan undangan",
       copied: "Tautan undangan tersalin!",

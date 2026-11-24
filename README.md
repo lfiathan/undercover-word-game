@@ -127,11 +127,19 @@ domain and the build switches to serving from the root.
 
 ## Languages
 
-English, German, French and **Indonesian** (`ID` in the switcher, top right).
-Each language ships its own word pairs, and the host's language decides which
-pack a round is dealt from -- so set the host to `ID` for an Indonesian game
-night. The Indonesian pack has 239 pairs drawn from food, transport, places and
-everyday life (`nasi goreng` / `nasi uduk`, `lembur` / `cuti`, `ojek` / `taksi`).
+English, German, French and **Indonesian**, chosen in two independent places:
+
+- **Interface language** -- the switcher at the top right. Per player, stored on
+  their own device, so everyone reads the menus in the language they prefer.
+- **Game words** -- a picker on the Game Setup screen, host only. It decides
+  which pack the secret words are dealt from, and every player sees which one
+  is selected. So an English-speaking host can deal Indonesian words, and a
+  player whose phone is in Indonesian still gets the same word as everyone else.
+
+The word language is fixed once a game starts; it can be changed again from the
+setup screen before the next game. The Indonesian pack has 239 pairs drawn from
+food, transport, places and everyday life (`nasi goreng` / `nasi uduk`,
+`lembur` / `cuti`, `diskon` / `gratis ongkir`).
 
 New languages go in `src/i18n/locales/<code>/`, then get registered in
 `src/i18n/index.ts` and `src/components/LanguageSwitcher.tsx`.

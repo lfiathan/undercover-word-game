@@ -29,4 +29,6 @@ export type GameState = {
   winner?: string;
   mrWhiteGuess?: string;
   roleDistribution: RoleDistribution;
+  /** Which word pack the host deals secret words from (see config/wordLanguages). */
+  wordLanguage: string;
 };

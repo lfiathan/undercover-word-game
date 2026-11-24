@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { calculateDefaultDistribution } from "../config/roleDistribution";
 import { useTranslation } from "react-i18next";
 import { shuffle } from "@/lib/utils";
+import { resolveWordLanguage } from "@/config/wordLanguages";
 
 interface GameContextType {
   gameState: GameState;
@@ -17,6 +18,7 @@ interface GameContextType {
   submitDescription: (playerId: string, description: string) => void;
   resetGame: () => void;
   updateRoleDistribution: (distribution: RoleDistribution) => void;
+  setWordLanguage: (language: string) => void;
   checkGameEnd: (players: Player[]) => string | null;
   eliminatePlayer: (eliminatedId: string) => void;
   rerollWords: () => void;
@@ -25,9 +27,9 @@ interface GameContextType {
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export const GameProvider = ({ children }: { children: React.ReactNode }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
-  const [gameState, setGameState] = useState<GameState>({
+  const [gameState, setGameState] = useState<GameState>(() => ({
     players: [],
     phase: "setup",
     currentRound: 0,
@@ -35,7 +37,9 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
     undercoverWord: "",
     mrWhiteGuess: undefined,
     roleDistribution: calculateDefaultDistribution(4),
-  });
+    // Start on the pack matching the host's own language; they can change it.
+    wordLanguage: resolveWordLanguage(i18n.resolvedLanguage ?? i18n.language),
+  }));
 
   const addPlayer = (name: string, id: string) => {
     setGameState((prev) => {
@@ -127,8 +131,9 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
     return null;
   };
 
-  const generateAndAssignWords = (players: Player[]) => {
-    const wordPairs = t("wordPairs", { returnObjects: true }) as [string, string][];
+  const generateAndAssignWords = (players: Player[], wordLanguage: string) => {
+    const lng = resolveWordLanguage(wordLanguage);
+    const wordPairs = t("wordPairs", { lng, returnObjects: true }) as [string, string][];
     const randomPair = wordPairs[Math.floor(Math.random() * wordPairs.length)];
     const [majorityWord, undercoverWord] = randomPair;
 
@@ -149,7 +154,10 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
     setGameState(prev => {
       if (prev.currentRound !== 1) return prev;
 
-      const { players, majorityWord, undercoverWord } = generateAndAssignWords(prev.players);
+      const { players, majorityWord, undercoverWord } = generateAndAssignWords(
+        prev.players,
+        prev.wordLanguage,
+      );
       return {
         ...prev,
         players,
@@ -185,7 +193,10 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
           };
         });
 
-        const { players, majorityWord, undercoverWord } = generateAndAssignWords(playersWithRoles);
+        const { players, majorityWord, undercoverWord } = generateAndAssignWords(
+          playersWithRoles,
+          prev.wordLanguage,
+        );
         const speakingOrder = generateSpeakingOrder(players);
 
         return {
@@ -314,8 +325,17 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
         undercoverWord: "",
         mrWhiteGuess: undefined,
         roleDistribution: prev.roleDistribution,
+        wordLanguage: prev.wordLanguage,
       };
     });
+  };
+
+  const setWordLanguage = (language: string) => {
+    setGameState(prev =>
+      prev.wordLanguage === resolveWordLanguage(language)
+        ? prev
+        : { ...prev, wordLanguage: resolveWordLanguage(language) },
+    );
   };
 
   const updateRoleDistribution = (distribution: RoleDistribution) => {
@@ -339,6 +359,7 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
         submitDescription,
         resetGame,
         updateRoleDistribution,
+        setWordLanguage,
         checkGameEnd,
         eliminatePlayer,
         rerollWords,

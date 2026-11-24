@@ -25,6 +25,8 @@ export default {
       enterUsernameError: "Veuillez entrer votre pseudo !",
     },
     gameSetup: {
+      wordLanguage: "Mots du jeu",
+      wordLanguageHint: "L'hôte choisit la langue des mots secrets. Les menus restent dans la langue de chaque joueur.",
       title: "Configuration de la partie",
       shareLabel: "Lien de la partie - à partager avec vos amis",
       copied: "Lien de la partie copié dans le presse-papiers !",

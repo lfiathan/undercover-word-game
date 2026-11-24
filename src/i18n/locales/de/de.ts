@@ -25,6 +25,8 @@ export default {
       enterUsernameError: "Bitte gib deinen Benutzernamen ein!",
     },
     gameSetup: {
+      wordLanguage: "Spielwörter",
+      wordLanguageHint: "Der Host wählt, aus welcher Sprache die geheimen Wörter kommen. Die Menüs bleiben in der Sprache jedes Spielers.",
       title: "Spiel Setup",
       shareLabel: "Spiel-Link - Teile ihn mit deinen Freunden",
       copied: "Spiel-Link in die Zwischenablage kopiert!",

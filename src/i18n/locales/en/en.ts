@@ -25,6 +25,8 @@ export default {
       enterUsernameError: "Please enter your username!",
     },
     gameSetup: {
+      wordLanguage: "Game words",
+      wordLanguageHint: "The host picks which language the secret words come from. Menus stay in each player's own language.",
       title: "Game Setup",
       shareLabel: "Game code - tap to copy the invite link",
       copied: "Invite link copied to clipboard!",
