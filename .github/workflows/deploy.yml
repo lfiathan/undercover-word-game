@@ -4,11 +4,17 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
+
+# Let a newer push cancel an in-flight deploy instead of queueing behind it.
+concurrency:
+  group: pages
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -22,18 +28,31 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18  
+          node-version: 20
+          cache: npm
 
       - name: Install dependencies
-        uses: bahmutov/npm-install@v1
+        run: npm ci
 
       - name: Build project
-        run: npm run build
+        # A GitHub Pages project site is served from /<repo>/, a user/org site
+        # or a custom domain from /. Detect which one this repo is.
+        run: |
+          if [ "${{ github.event.repository.name }}" = "${{ github.repository_owner }}.github.io" ] || [ -f public/CNAME ]; then
+            export BASE_PATH="/"
+          else
+            export BASE_PATH="/${{ github.event.repository.name }}/"
+          fi
+          echo "Building with BASE_PATH=$BASE_PATH"
+          npm run build
+
+      - name: Add SPA fallback
+        run: cp dist/index.html dist/404.html
 
       - name: Upload production-ready build files
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./dist 
+          path: ./dist
 
   deploy:
     name: Deploy

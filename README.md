@@ -19,6 +19,27 @@ Undercover word game
 <!-- ![screenshot](https://raw.githubusercontent.com/amitmerchant1990/electron-markdownify/master/app/img/markdownify.gif) -->
 
 
+> ### About this fork
+>
+> Upstream connects players with **peer-to-peer WebRTC**. That needs a TURN
+> relay server to get through typical home, office and mobile networks, and
+> every free no-signup TURN service has since shut down -- so in practice
+> joining only worked when everybody sat on the same network, and failed with
+> no explanation otherwise.
+>
+> This fork replaces the peer-to-peer transport with an **encrypted relay over
+> public MQTT-over-WebSocket brokers**. Players only need an ordinary outgoing
+> internet connection, which works on phone data, hotel wifi and office wifi
+> alike. Nothing to sign up for, nothing to pay, nothing to self-host.
+>
+> Also changed: short 6-character room codes instead of long peer ids,
+> auto-rejoin after a reload (your word and seat are kept), a grace period so
+> a player who drops mid-round is not eliminated, and joining that fails with
+> an actual reason instead of hanging.
+>
+> See [How multiplayer works](#how-multiplayer-works) and
+> [Deploy your own copy](#deploy-your-own-copy).
+
 This is a web-version of the popular [Undercover App](https://play.google.com/store/apps/details?id=com.yanstarstudio.joss.undercover). I made this, so that you can play Undercover remotely with your friends. [Play the game yourself](https://undercover.localplayer.dev/) together with your friends or with seperate browser tabs.
 
 Undercover is a social deduction word game similar to **Werewolf** or **Among Us**.
@@ -69,24 +90,107 @@ If the victory condition of the game is not met after the elimination phase, rep
 2. The **Impostors** (Undercovers and/or Mr.Whites) win if they survive until only 1 Civilian is left.
 3. **Mr.White** also wins if they guess the Civilians’ word correctly.
 
-## Self-Host
-
-If you want to run the web-project yourself, you can follow these steps:
+## Run it locally
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone https://github.com/antebrl/undercover-word-game.git
+# Step 1: Clone the repository.
+git clone https://github.com/lfiathan/undercover-word-game.git
+cd undercover-word-game
 
-# Step 2: Install the necessary dependencies.
+# Step 2: Install dependencies.
 npm i
 
-# Step 3: Start the development server with auto-reloading and an instant preview.
+# Step 3: Start the dev server.
 npm run dev
 ```
-Access at http://localhost:8080
 
-This project works through peer-to-peer WebRTC communication with [peerJs](https://github.com/peers/peerjs).
+Access at http://localhost:8080. Open a few browser tabs to play against
+yourself: each tab is its own player.
+
+## Deploy your own copy
+
+The game is a static site, so GitHub Pages hosts it for free -- no server, no
+account beyond GitHub itself.
+
+1. Fork this repository.
+2. In your fork: **Settings -> Pages -> Build and deployment -> Source** ->
+   pick **GitHub Actions**.
+3. In your fork: **Actions** tab -> enable workflows (GitHub disables them on
+   new forks).
+4. Push any commit, or run the **Deploy** workflow manually from the Actions
+   tab.
+
+Your game lands at `https://<your-username>.github.io/undercover-word-game/`.
+The workflow works out the base path from the repository name, so there is
+nothing to edit. For a custom domain, add a `public/CNAME` file containing the
+domain and the build switches to serving from the root.
+
+## How multiplayer works
+
+One player hosts: their browser owns the game state, deals the secret words and
+decides what happens. Everyone else sends intents ("I vote for Ana") and renders
+what the host sends back. No server runs any game logic.
+
+Messages travel over public MQTT brokers via WebSocket. The client connects to
+**all** configured brokers at once and publishes to each of them, so two players
+only need one broker in common -- a broker that is down, blocked by a firewall
+or rate limiting us does not break the room. Duplicates are filtered by message
+id. Defaults, all free and account-free:
+
+| Broker | URL |
+| --- | --- |
+| HiveMQ | `wss://broker.hivemq.com:8884/mqtt` |
+| EMQX | `wss://broker.emqx.io:8084/mqtt` |
+| Mosquitto | `wss://test.mosquitto.org:8081/` |
+
+Reliability details worth knowing:
+
+- **State is versioned.** Every peer reports the newest version it has seen on
+  each heartbeat, and the host resends to anyone who falls behind, so a dropped
+  message heals itself within seconds.
+- **Reloading keeps your seat.** Your identity lives in `sessionStorage`, and
+  the host recognises a returning player instead of seating a duplicate.
+- **Dropping out mid-round is not elimination.** The host holds a vanished
+  player's seat (and their word) for 45 seconds before removing them.
+- **The host is the single point of failure.** If the host closes their tab the
+  game is over for everyone, same as upstream.
+
+### Configuration
+
+Optional build-time environment variables:
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `VITE_MQTT_BROKERS` | the three brokers above | Comma separated broker URLs, e.g. your own Mosquitto |
+| `VITE_TOPIC_PREFIX` | `ucw1` | Topic namespace |
+| `VITE_ROOM_SALT` | built-in string | Key-derivation salt; change it to isolate your deployment |
+
+### Privacy
+
+Public brokers are public: anyone can subscribe to a wildcard topic and watch
+traffic go by. So nothing readable is published. From the room code the client
+derives, in one slow PBKDF2 pass (310k iterations, SHA-256):
+
+- the **topic id** the room talks on, and
+- an **AES-256-GCM key** that every payload is encrypted with.
+
+A sniffer sees an opaque topic carrying opaque bytes. Recovering the key means
+brute forcing the 6-character code space through that KDF for each guess, which
+costs GPU-hours per room -- plenty for party-game secret words, and the room is
+gone by then. Use `VITE_MQTT_BROKERS` with your own broker if you want stronger
+guarantees than that.
+
+One thing this fork does *not* fix, inherited from upstream: the host broadcasts
+the full game state, so every player's browser holds everyone's roles and words.
+The UI hides them, but a player who opens devtools can cheat. Play with friends.
+
+## Credits
+
+The game, the artwork and all the original code are by
+[antebrl/undercover-word-game](https://github.com/antebrl/undercover-word-game) --
+please star the upstream project. This fork only swaps the network transport and
+the room-joining flow. The game concept is
+[Undercover by Yanstar Studio](https://www.yanstarstudio.com/de/undercover-game).
 
 ## Contribute & Support
-If you like the game and want to support it, please leave a ⭐.
-Contributions such as adding new word-pairs and translation are always welcomed.
+Contributions such as adding new word-pairs and translations are always welcomed.
