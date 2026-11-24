@@ -1,23 +1,25 @@
 import { useGame } from "../context/GameContext";
 import { usePeer } from "../context/PeerContext";
 import { useTranslation } from "react-i18next";
-import { Eye, Hourglass, Users } from "lucide-react";
+import { Eye, Hourglass, Trophy, Users } from "lucide-react";
 import { MrWhiteGuess } from "./shared/MrWhiteGuess";
 import { Player } from "../types/game";
 
 /**
- * The visitor's screen: everything at once.
+ * The visitor's screen.
  *
- * A visitor holds no seat, so there is nothing for them to do here and no
- * reason to hide anything from them -- the point of the role is to follow
- * the game knowing exactly who is who.
+ * A visitor is blind on purpose: they see exactly what the table sees. No
+ * secret words, no roles -- otherwise sitting out would be the best seat in
+ * the room and anyone watching could quietly tip a player off. A role becomes
+ * visible when its player is voted out, which is public anyway, and the whole
+ * board opens up once the game is over.
  */
 
-const roleStyles: Record<string, { chip: string; dot: string }> = {
-  civilian: { chip: "bg-emerald-400/15 text-emerald-200", dot: "bg-emerald-400" },
-  undercover: { chip: "bg-fuchsia-400/15 text-fuchsia-200", dot: "bg-fuchsia-400" },
-  mrwhite: { chip: "bg-white/15 text-white", dot: "bg-white" },
-  spectator: { chip: "bg-white/10 text-white/60", dot: "bg-white/40" },
+const roleStyles: Record<string, string> = {
+  civilian: "bg-emerald-400/15 text-emerald-200",
+  undercover: "bg-fuchsia-400/15 text-fuchsia-200",
+  mrwhite: "bg-white/15 text-white",
+  spectator: "bg-white/10 text-white/60",
 };
 
 const avatarGradient = (name: string) => {
@@ -42,7 +44,7 @@ export const VisitorView = () => {
 
   const { players, phase, currentRound, votingResults, visitors } = gameState;
   const inLobby = phase === "setup" && currentRound === 0;
-  const wordsDealt = Boolean(gameState.majorityWord);
+  const isOver = phase === "gameEnd";
 
   const phaseLabel = inLobby
     ? t("visitor.waiting")
@@ -50,7 +52,7 @@ export const VisitorView = () => {
       ? t("voting.inProgress")
       : phase === "results"
         ? t("results.title")
-        : phase === "gameEnd"
+        : isOver
           ? t("gameEnd.title")
           : t("wordReveal.titleDiscussion");
 
@@ -76,6 +78,9 @@ export const VisitorView = () => {
       ]
     : players;
 
+  const eliminated = players.find((p) => p.id === gameState.lastEliminatedId);
+  const showElimination = phase === "results" && eliminated;
+
   return (
     <div className="animate-fade-in space-y-5">
       <header className="space-y-2 text-center">
@@ -89,28 +94,8 @@ export const VisitorView = () => {
         </p>
       </header>
 
-      {/* The pair in play, which is the whole secret of the round. */}
-      {wordsDealt ? (
-        <section className="surface-raised grid grid-cols-2 divide-x divide-white/10 overflow-hidden">
-          <div className="p-5 text-center">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-300/70">
-              {t("visitor.civilians")}
-            </p>
-            <p className="mt-1.5 break-words font-display text-xl font-bold text-white">
-              {gameState.majorityWord}
-            </p>
-          </div>
-          <div className="p-5 text-center">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-fuchsia-300/70">
-              {t("visitor.undercover")}
-            </p>
-            <p className="mt-1.5 break-words font-display text-xl font-bold text-white">
-              {gameState.undercoverWord}
-            </p>
-          </div>
-        </section>
-      ) : (
-        <section className="surface flex items-center justify-center gap-2 p-5 text-sm text-white/45">
+      {inLobby && (
+        <section className="surface flex flex-wrap items-center justify-center gap-2 p-5 text-sm text-white/45">
           <Hourglass className="h-4 w-4" />
           {t("visitor.waiting")}
           {hostId && (
@@ -118,6 +103,46 @@ export const VisitorView = () => {
               {hostId}
             </span>
           )}
+        </section>
+      )}
+
+      {/* Who just went out, and what they turned out to be: public either way. */}
+      {showElimination && (
+        <section className="surface-raised relative overflow-hidden p-6 text-center animate-pop-in">
+          <div className="pointer-events-none absolute inset-x-0 -top-24 h-44 bg-gradient-to-b from-destructive/25 to-transparent blur-3xl" />
+          <div className="relative space-y-2">
+            <h3 className="font-display text-xl font-bold text-white">
+              {t("results.eliminatedPlayer", { name: eliminated.name })}
+            </h3>
+            <p className="text-sm text-white/55">
+              {t("results.theyWereA")}{" "}
+              <span className="font-display text-lg font-bold text-white">
+                {t(`roles.${eliminated.role}`)}
+              </span>
+            </p>
+          </div>
+        </section>
+      )}
+
+      {isOver && (
+        <section className="relative overflow-hidden rounded-2xl p-7 text-center animate-pop-in">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_hsl(var(--gold)/0.22),_transparent_65%)]" />
+          <div className="relative space-y-3">
+            <span className="mx-auto grid h-16 w-16 place-items-center rounded-2xl border border-gold/30 bg-gold/15">
+              <Trophy className="h-8 w-8 text-gold" />
+            </span>
+            <h3 className="text-gradient font-display text-2xl font-extrabold">
+              {gameState.winner === "civilian" && t("gameEnd.civilianWin")}
+              {gameState.winner === "undercover" && t("gameEnd.undercoverWin")}
+              {gameState.winner === "mrwhite" && t("gameEnd.mrWhiteWin")}
+              {gameState.winner === "infiltrators" && t("gameEnd.infiltratorsWin")}
+            </h3>
+            <p className="font-mono text-sm text-white/60">
+              {gameState.majorityWord}
+              <span className="px-2 text-white/25">/</span>
+              {gameState.undercoverWord}
+            </p>
+          </div>
         </section>
       )}
 
@@ -133,7 +158,8 @@ export const VisitorView = () => {
           {ordered.map((player) => {
             const received = votesFor(player.id);
             const target = votedFor(player.id);
-            const style = roleStyles[player.role ?? "spectator"] ?? roleStyles.spectator;
+            // A role is public once its player is out, and at the end.
+            const roleVisible = Boolean(player.role) && (player.isEliminated || isOver);
 
             return (
               <li
@@ -156,9 +182,11 @@ export const VisitorView = () => {
                       <span className="truncate font-semibold text-white/90">
                         {player.name}
                       </span>
-                      {player.role && (
+                      {roleVisible && (
                         <span
-                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${style.chip}`}
+                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                            roleStyles[player.role!] ?? roleStyles.spectator
+                          }`}
                         >
                           {t(`roles.${player.role}`)}
                         </span>
@@ -170,14 +198,9 @@ export const VisitorView = () => {
                       )}
                     </div>
 
-                    {wordsDealt && (
-                      <p className="mt-1 font-mono text-sm text-white/70">
-                        {player.role === "mrwhite" ? (
-                          <span className="italic text-white/35">{t("visitor.noWord")}</span>
-                        ) : (
-                          player.word
-                        )}
-                      </p>
+                    {/* Words stay hidden until the game is over. */}
+                    {isOver && player.word && (
+                      <p className="mt-1 font-mono text-sm text-white/60">{player.word}</p>
                     )}
                   </div>
                 </div>

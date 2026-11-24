@@ -166,20 +166,27 @@ the link-preview image -- open it at 1200x630 and screenshot it to regenerate
 
 ## Visitors
 
-A visitor watches a room without taking a seat in it. They pick **Watch a
-game** on the start screen, enter the room code, and get a single screen that
-shows the whole round at once: the word pair, every player's secret word and
-role, what each of them said, and who voted for whom as the votes come in.
+A visitor watches a room without taking a seat in it: **Watch a game** on the
+start screen, then the room code. They are blind by design -- they see exactly
+what the table sees, and nothing more. No secret word, no roles, no word pair.
 
-Visitors are outside the game in every sense that matters to it. They are not
-dealt a word, they do not vote, they are not counted towards the four-player
-minimum or the role distribution, and a visitor leaving never ends a round.
-They are also not secret: everyone in the room sees a "Watching" list with
-their names, because someone who can see every word should not be invisible.
+What a visitor does see is the public shape of the round: who is playing, the
+speaking order, what each player said, the votes as they land, who gets voted
+out and what role that player turns out to be, and the full reveal once the
+game ends. The point is to follow the game, not to referee it -- a visitor who
+could read every word would be the best-informed person in the room and could
+quietly tip a player off.
 
-Useful for whoever is running the evening, for someone who joined too late for
-this round, or for a player who was eliminated and would rather see the whole
-board than wait it out.
+They are outside the game in every sense that matters to it: not dealt a word,
+no vote, not counted towards the four-player minimum or the role distribution,
+and a visitor leaving never ends a round. They are also not anonymous -- every
+player screen carries a "Watching" list naming them.
+
+Note the limit of this: the host broadcasts one game state to the whole room,
+so a visitor's browser receives the same payload every player's does. The
+visitor interface hides the secrets, but someone determined with devtools open
+could read them -- exactly as any player could today. Blindness here is a rule
+of the game, not a cryptographic guarantee.
 
 ## How multiplayer works
 

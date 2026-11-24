@@ -14,7 +14,7 @@ export default {
     multiplayerSetup: {
       watchGame: "Watch a game",
       watchSubtitle: "Follow along without playing",
-      watchExplainer: "As a visitor you take no seat in the game. You see every player's secret word and role, and players are shown that you are watching.",
+      watchExplainer: "As a visitor you take no seat and get no secret word. You follow the round like everyone at the table, and you only learn a player's role when they are voted out.",
       startWatching: "Start watching",
       tagline: "One word. One impostor. Find them before they find you.",
       hostSubtitle: "Create a room and invite your friends",
@@ -33,6 +33,7 @@ export default {
       enterUsernameError: "Please enter your username!",
     },
     gameSetup: {
+      civilians: "civilians",
       copy: "Copy link",
       share: "Share",
       shareText: "Join my Undercover game - code {{code}}",
@@ -42,7 +43,6 @@ export default {
       shareLabel: "Game code",
       copied: "Invite link copied to clipboard!",
       roleDistribution: "Role Distribution",
-      civilians: "civilians",
       undercovers: "undercovers",
       mrWhites: "mr whites",
       atLeastFourPlayers: "At least 4 players are required to start the game",
@@ -109,8 +109,8 @@ export default {
       points: "PTS",
     },
     roles: {
-      civilian: "Civilian",
       undercover: "Undercover",
+      civilian: "Civilian",
       mrwhite: "Mr. White",
       spectator: "Spectator",
     },
@@ -134,11 +134,8 @@ export default {
     },
     visitor: {
       badge: "Watching",
-      subtitle: "You take no seat. You see every word and role.",
+      subtitle: "You see what the table sees. No secret words, no roles.",
       waiting: "Waiting for the host to start",
-      civilians: "Civilians",
-      undercover: "Undercover",
-      noWord: "no word",
       votedFor: "voted for {{name}}",
       votesReceived_one: "{{count}} vote",
       votesReceived_other: "{{count}} votes",

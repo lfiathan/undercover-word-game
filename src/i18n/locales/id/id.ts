@@ -14,7 +14,7 @@ export default {
     multiplayerSetup: {
       watchGame: "Tonton permainan",
       watchSubtitle: "Ikut menyimak tanpa ikut bermain",
-      watchExplainer: "Sebagai penonton kamu tidak ikut bermain. Kamu bisa melihat kata rahasia dan peran semua pemain, dan pemain akan tahu kalau kamu sedang menonton.",
+      watchExplainer: "Sebagai penonton kamu tidak ikut bermain dan tidak dapat kata rahasia. Kamu mengikuti permainan seperti yang lain, dan baru tahu peran seseorang kalau dia tereliminasi.",
       startWatching: "Mulai menonton",
       tagline: "Satu kata. Satu penyusup. Temukan sebelum kamu ketahuan.",
       hostSubtitle: "Buat ruangan dan undang teman-temanmu",
@@ -33,6 +33,7 @@ export default {
       enterUsernameError: "Masukkan nama kamu dulu!",
     },
     gameSetup: {
+      civilians: "warga",
       copy: "Salin tautan",
       share: "Bagikan",
       shareText: "Ikut main Undercover yuk - kode {{code}}",
@@ -42,7 +43,6 @@ export default {
       shareLabel: "Kode permainan",
       copied: "Tautan undangan tersalin!",
       roleDistribution: "Pembagian Peran",
-      civilians: "warga",
       undercovers: "undercover",
       mrWhites: "mr white",
       atLeastFourPlayers: "Butuh minimal 4 pemain untuk memulai permainan",
@@ -109,8 +109,8 @@ export default {
       points: "POIN",
     },
     roles: {
-      civilian: "Warga",
       undercover: "Undercover",
+      civilian: "Warga",
       mrwhite: "Mr. White",
       spectator: "Penonton",
     },
@@ -134,11 +134,8 @@ export default {
     },
     visitor: {
       badge: "Menonton",
-      subtitle: "Kamu tidak ikut bermain. Kamu bisa melihat semua kata dan peran.",
+      subtitle: "Kamu melihat yang dilihat semua orang. Tanpa kata rahasia, tanpa peran.",
       waiting: "Menunggu host memulai permainan",
-      civilians: "Warga",
-      undercover: "Undercover",
-      noWord: "tanpa kata",
       votedFor: "memilih {{name}}",
       votesReceived_one: "{{count}} suara",
       votesReceived_other: "{{count}} suara",

@@ -14,7 +14,7 @@ export default {
     multiplayerSetup: {
       watchGame: "Spiel zuschauen",
       watchSubtitle: "Mitverfolgen, ohne mitzuspielen",
-      watchExplainer: "Als Besucher spielst du nicht mit. Du siehst das geheime Wort und die Rolle jedes Spielers, und den Spielern wird angezeigt, dass du zuschaust.",
+      watchExplainer: "Als Besucher spielst du nicht mit und bekommst kein geheimes Wort. Du verfolgst die Runde wie alle am Tisch und erfährst die Rolle eines Spielers erst, wenn er herausgewählt wird.",
       startWatching: "Zuschauen",
       tagline: "Ein Wort. Ein Eindringling. Finde ihn, bevor er dich findet.",
       hostSubtitle: "Erstelle einen Raum und lade deine Freunde ein",
@@ -33,6 +33,7 @@ export default {
       enterUsernameError: "Bitte gib deinen Benutzernamen ein!",
     },
     gameSetup: {
+      civilians: "Zivilisten",
       copy: "Link kopieren",
       share: "Teilen",
       shareText: "Spiel mit bei meiner Undercover-Runde - Code {{code}}",
@@ -42,7 +43,6 @@ export default {
       shareLabel: "Spiel-Code",
       copied: "Spiel-Link in die Zwischenablage kopiert!",
       roleDistribution: "Rollenverteilung",
-      civilians: "Zivilisten",
       undercovers: "Undercover",
       mrWhites: "Mr. Whites",
       atLeastFourPlayers: "Mindestens 4 Spieler sind erforderlich, um zu starten",
@@ -109,8 +109,8 @@ export default {
       points: "PUNKTE",
     },
     roles: {
-      civilian: "Zivilist",
       undercover: "Undercover",
+      civilian: "Zivilist",
       mrwhite: "Mr. White",
       spectator: "Zuschauer",
     },
@@ -134,11 +134,8 @@ export default {
     },
     visitor: {
       badge: "Zuschauen",
-      subtitle: "Du spielst nicht mit. Du siehst jedes Wort und jede Rolle.",
+      subtitle: "Du siehst, was alle am Tisch sehen. Keine geheimen Wörter, keine Rollen.",
       waiting: "Warten auf den Start durch den Host",
-      civilians: "Zivilisten",
-      undercover: "Undercover",
-      noWord: "kein Wort",
       votedFor: "hat für {{name}} gestimmt",
       votesReceived_one: "{{count}} Stimme",
       votesReceived_other: "{{count}} Stimmen",

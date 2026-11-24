@@ -14,7 +14,7 @@ export default {
     multiplayerSetup: {
       watchGame: "Regarder une partie",
       watchSubtitle: "Suivre la partie sans y jouer",
-      watchExplainer: "En tant que visiteur, vous ne jouez pas. Vous voyez le mot secret et le rôle de chaque joueur, et les joueurs savent que vous regardez.",
+      watchExplainer: "En tant que visiteur, vous ne jouez pas et n'avez pas de mot secret. Vous suivez la partie comme tout le monde et ne découvrez le rôle d'un joueur que lorsqu'il est éliminé.",
       startWatching: "Commencer à regarder",
       tagline: "Un mot. Un imposteur. Démasquez-le avant qu'il vous démasque.",
       hostSubtitle: "Créez un salon et invitez vos amis",
@@ -33,6 +33,7 @@ export default {
       enterUsernameError: "Veuillez entrer votre pseudo !",
     },
     gameSetup: {
+      civilians: "civils",
       copy: "Copier le lien",
       share: "Partager",
       shareText: "Rejoins ma partie d'Undercover - code {{code}}",
@@ -42,7 +43,6 @@ export default {
       shareLabel: "Code de la partie",
       copied: "Lien de la partie copié dans le presse-papiers !",
       roleDistribution: "Répartition des rôles",
-      civilians: "civils",
       undercovers: "infiltrés",
       mrWhites: "Mr. White",
       atLeastFourPlayers:
@@ -112,8 +112,8 @@ export default {
       points: "PTS",
     },
     roles: {
-      civilian: "Civil",
       undercover: "Infiltré",
+      civilian: "Civil",
       mrwhite: "Mr. White",
       spectator: "Spectateur",
     },
@@ -137,11 +137,8 @@ export default {
     },
     visitor: {
       badge: "Spectateur",
-      subtitle: "Vous ne jouez pas. Vous voyez tous les mots et tous les rôles.",
+      subtitle: "Vous voyez ce que la table voit. Pas de mots secrets, pas de rôles.",
       waiting: "En attente du lancement par l'hôte",
-      civilians: "Civils",
-      undercover: "Undercover",
-      noWord: "sans mot",
       votedFor: "a voté pour {{name}}",
       votesReceived_one: "{{count}} vote",
       votesReceived_other: "{{count}} votes",
