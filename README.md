@@ -125,6 +125,17 @@ The workflow works out the base path from the repository name, so there is
 nothing to edit. For a custom domain, add a `public/CNAME` file containing the
 domain and the build switches to serving from the root.
 
+## Languages
+
+English, German, French and **Indonesian** (`ID` in the switcher, top right).
+Each language ships its own word pairs, and the host's language decides which
+pack a round is dealt from -- so set the host to `ID` for an Indonesian game
+night. The Indonesian pack has 239 pairs drawn from food, transport, places and
+everyday life (`nasi goreng` / `nasi uduk`, `lembur` / `cuti`, `ojek` / `taksi`).
+
+New languages go in `src/i18n/locales/<code>/`, then get registered in
+`src/i18n/index.ts` and `src/components/LanguageSwitcher.tsx`.
+
 ## How multiplayer works
 
 One player hosts: their browser owns the game state, deals the secret words and

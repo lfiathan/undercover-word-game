@@ -11,6 +11,7 @@ const languages = [
 	{ code: "en", label: "EN" },
 	{ code: "de", label: "DE" },
 	{ code: "fr", label: "FR" },
+	{ code: "id", label: "ID" },
 ];
 
 export const LanguageSwitcher = () => {

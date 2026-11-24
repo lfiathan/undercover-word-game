@@ -4,6 +4,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import en from './locales/en/en';
 import de from './locales/de/de';
 import fr from './locales/fr/fr';
+import id from './locales/id/id';
 
 i18n
   .use(LanguageDetector)
@@ -17,9 +18,10 @@ i18n
       en,
       de,
       fr,
+      id,
     },
     fallbackLng: 'en',
-    supportedLngs: ['en', 'de', 'fr'],
+    supportedLngs: ['en', 'de', 'fr', 'id'],
     interpolation: {
       escapeValue: false,
     },
