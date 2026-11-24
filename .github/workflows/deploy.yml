@@ -38,13 +38,22 @@ jobs:
         # A GitHub Pages project site is served from /<repo>/, a user/org site
         # or a custom domain from /. Detect which one this repo is.
         run: |
-          if [ "${{ github.event.repository.name }}" = "${{ github.repository_owner }}.github.io" ] || [ -f public/CNAME ]; then
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          REPO="${{ github.event.repository.name }}"
+          if [ -f public/CNAME ]; then
             export BASE_PATH="/"
+            SITE_URL="https://$(tr -d '[:space:]' < public/CNAME)/"
+          elif [ "$REPO" = "$OWNER.github.io" ]; then
+            export BASE_PATH="/"
+            SITE_URL="https://$OWNER.github.io/"
           else
-            export BASE_PATH="/${{ github.event.repository.name }}/"
+            export BASE_PATH="/$REPO/"
+            SITE_URL="https://$OWNER.github.io/$REPO/"
           fi
-          echo "Building with BASE_PATH=$BASE_PATH"
+          echo "Building with BASE_PATH=$BASE_PATH and SITE_URL=$SITE_URL"
           npm run build
+          # Link previews need absolute URLs, which only CI knows.
+          sed -i "s|__SITE_URL__|$SITE_URL|g" dist/index.html
 
       - name: Add SPA fallback
         run: cp dist/index.html dist/404.html

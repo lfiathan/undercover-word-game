@@ -1,4 +1,3 @@
-import { Card } from "@/components/ui/card";
 import { Users, UserX } from "lucide-react";
 import { Player } from "../../types/game";
 import { useEffect, useState } from "react";
@@ -17,6 +16,22 @@ interface PlayerListProps {
   showScores?: boolean;
   tieBreakerPlayers?: string[];
 }
+
+/** Stable colour per player, so everyone's avatar looks the same to everyone. */
+const avatarGradient = (name: string) => {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) % 360;
+  return `linear-gradient(135deg, hsl(${hash} 70% 58%), hsl(${(hash + 48) % 360} 72% 48%))`;
+};
+
+const initials = (name: string) =>
+  name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0] ?? "")
+    .join("")
+    .toUpperCase() || "?";
 
 export const PlayerList = ({
   players,
@@ -91,114 +106,148 @@ export const PlayerList = ({
     if (!votingResults) return [];
     return Object.entries(votingResults)
       .filter(([_, targetId]) => targetId === playerId)
-      .map(([voterId]) => players.find(p => p.id === voterId)?.name || '');
+      .map(([voterId]) => players.find((p) => p.id === voterId)?.name || "");
   };
 
   const hasCurrentPlayerVoted = currentPlayerId && votingResults?.[currentPlayerId];
-  const isCurrentPlayerEliminated = !players.some(player => player.id === currentPlayerId);
+  const isCurrentPlayerEliminated = !players.some((player) => player.id === currentPlayerId);
 
-  const filteredEliminatedPlayers = !showEliminated ? players.filter(p => !p.isEliminated) : players;
+  const filteredEliminatedPlayers = !showEliminated
+    ? players.filter((p) => !p.isEliminated)
+    : players;
   const displayPlayers = speakingOrder ? players : filteredEliminatedPlayers;
 
-  const currentSpeakerIndex = speakingOrder ? displayPlayers.findIndex(p => !p.submittedDescription) : 0;
+  const currentSpeakerIndex = speakingOrder
+    ? displayPlayers.findIndex((p) => !p.submittedDescription)
+    : 0;
 
   return (
-    <Card className="p-6 glass-morphism">
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 text-white/90 text-lg">
-          <Users className="h-5 w-5" />
-          <span>{t("playerList.players", { count: displayPlayers.length })}</span>
-        </div>
+    <section className="surface p-4 sm:p-5">
+      <div className="mb-3 flex items-center gap-2 px-1 text-xs font-semibold uppercase tracking-wider text-white/40">
+        <Users className="h-3.5 w-3.5" />
+        <span>{t("playerList.players", { count: displayPlayers.length })}</span>
+      </div>
 
-        <div className="space-y-2">
-          {displayPlayers.map((player, index) => {
-            if (!speakingOrder && currentPlayerId && !hasCurrentPlayerVoted && player.id === currentPlayerId) return null;
+      <ul className="space-y-2">
+        {displayPlayers.map((player, index) => {
+          if (
+            !speakingOrder &&
+            currentPlayerId &&
+            !hasCurrentPlayerVoted &&
+            player.id === currentPlayerId
+          )
+            return null;
 
-            const votes = getVotesForPlayer(player.id);
-            const showVotes = (hasCurrentPlayerVoted || isCurrentPlayerEliminated) && votes.length > 0;
-            const isLastEliminated = player.id === lastEliminatedId;
-            const isCurrentSpeaker = speakingOrder && index === currentSpeakerIndex;
-            const isHighlighted = highlightedPlayer === player.id;
+          const votes = getVotesForPlayer(player.id);
+          const showVotes = (hasCurrentPlayerVoted || isCurrentPlayerEliminated) && votes.length > 0;
+          const isLastEliminated = player.id === lastEliminatedId;
+          const isCurrentSpeaker = speakingOrder && index === currentSpeakerIndex;
+          const isHighlighted = highlightedPlayer === player.id;
+          const isSelected = selectedPlayer === player.id;
+          const isMe = player.id === currentPlayerId;
 
-            return (
-              <div
-                key={player.id}
-                className={`
-                  flex items-center gap-3 p-3 rounded-lg transition-all duration-200
-                  ${onPlayerClick ? 'cursor-pointer' : ''}
-                  ${selectedPlayer === player.id
-                    ? 'bg-primary/20 border border-primary/30'
-                    : isHighlighted
-                      ? 'bg-red-500/30 border-2 border-red-500'
-                      : 'bg-white/5 hover:bg-white/10'
-                  }
-                  ${isLastEliminated && !votingResults ? 'border-2 border-blue-500' : ''}
-                  ${player.isEliminated ? 'opacity-50' : ''}
-                `}
-                onClick={() => onPlayerClick?.(player.id)}
-              >
+          return (
+            <li
+              key={player.id}
+              onClick={() => onPlayerClick?.(player.id)}
+              className={[
+                "relative flex items-center gap-3 rounded-xl border p-3 transition-all duration-200",
+                onPlayerClick ? "cursor-pointer tap-scale" : "",
+                isSelected
+                  ? "border-brand/60 bg-brand/15 shadow-[0_0_0_1px_hsl(var(--brand)/0.4)]"
+                  : isHighlighted
+                    ? "border-destructive/70 bg-destructive/20"
+                    : isLastEliminated && !votingResults
+                      ? "border-brand-three/50 bg-brand-three/10"
+                      : "border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.06]",
+                player.isEliminated ? "opacity-45 saturate-50" : "",
+              ].join(" ")}
+            >
+              {/* Speaker Indicator: used in WordReveal.tsx (discussion) */}
+              {speakingOrder && (
+                <div
+                  className={[
+                    "grid h-8 w-8 shrink-0 place-items-center rounded-lg text-sm font-bold transition-colors",
+                    isCurrentSpeaker
+                      ? "bg-gradient-to-br from-brand to-brand-two text-white animate-pulse-ring"
+                      : "bg-white/[0.07] text-white/50",
+                  ].join(" ")}
+                >
+                  {index + 1}
+                </div>
+              )}
 
-                {/* Speaker Indicator: used in WordReveal.tsx (discussion) */}
-                {speakingOrder && (
-                  <div className={`
-                    w-8 h-8 rounded-full flex items-center justify-center
-                    ${isCurrentSpeaker ? 'bg-primary' : 'bg-white/10'}
-                    ${isCurrentSpeaker ? 'text-white' : 'text-white/80'}
-                  `}>
-                    {index + 1}
-                  </div>
-                )}
-                <div className="flex-1 flex items-center justify-between">
-                  <div>
-                    <span className={`text-lg block max-w-[250px] truncate ${isCurrentSpeaker ? 'text-primary font-bold' : 'text-white'}`}>
-                      {player.name}
-                      {player.id === currentPlayerId && (
-                        <span className="text-primary ml-2">{t("common.you")}</span>
-                      )}
+              {!speakingOrder && (
+                <div
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-bold text-white/95 shadow-inner"
+                  style={{ backgroundImage: avatarGradient(player.name) }}
+                  aria-hidden
+                >
+                  {initials(player.name)}
+                </div>
+              )}
+
+              <div className="min-w-0 flex-1">
+                <div className="flex items-baseline gap-1.5">
+                  <span
+                    className={[
+                      "truncate font-semibold",
+                      isCurrentSpeaker ? "text-white" : "text-white/90",
+                    ].join(" ")}
+                  >
+                    {player.name}
+                  </span>
+                  {isMe && (
+                    <span className="shrink-0 text-xs font-medium text-brand">
+                      {t("common.you")}
                     </span>
-                    {/* Text or phrase the player has submitted this round */}
-                    {player.submittedDescription && (
-                      <p className="text-sm text-white/70 mt-1">
-                        {player.submittedDescription}
-                      </p>
-                    )}
-
-                    {/* Votes Overview: used in VotingScreen.tsx and Results.tsx */}
-                    {showVotes && (
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {votes.map((voterName, vIndex) => (
-                          <span
-                            key={vIndex}
-                            className="px-2 py-1 text-sm rounded-full bg-primary/60 text-white"
-                          >
-                            {voterName}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  {player.isEliminated && player.role && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-white/70">{t(`roles.${player.role}`)}</span>
-                      <UserX className="h-5 w-5 text-red-500" />
-                    </div>
                   )}
                 </div>
-                {/* Scores Overview: used in GameSetup.tsx */}
-                {showScores && (
-                  <div className="flex items-center gap-3">
-                    <div className="w-px self-stretch bg-gray-300/20"></div>
-                    <div className="flex items-center gap-1">
-                      <span className="text-lg font-bold text-white">{player.score}</span>
-                      <span className="text-sm text-white/70">{t("playerList.points")}</span>
-                    </div>
+
+                {/* Text or phrase the player has submitted this round */}
+                {player.submittedDescription && (
+                  <p className="mt-1 truncate text-sm italic text-white/55">
+                    “{player.submittedDescription}”
+                  </p>
+                )}
+
+                {/* Votes Overview: used in VotingScreen.tsx and Results.tsx */}
+                {showVotes && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {votes.map((voterName, vIndex) => (
+                      <span
+                        key={vIndex}
+                        className="rounded-full bg-brand/25 px-2 py-0.5 text-xs font-medium text-white/90"
+                      >
+                        {voterName}
+                      </span>
+                    ))}
                   </div>
                 )}
               </div>
-            );
-          })}
-        </div>
-      </div>
-    </Card>
+
+              {player.isEliminated && player.role && (
+                <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-white/[0.06] px-2.5 py-1">
+                  <UserX className="h-3.5 w-3.5 text-destructive" />
+                  <span className="text-xs font-medium text-white/60">
+                    {t(`roles.${player.role}`)}
+                  </span>
+                </div>
+              )}
+
+              {/* Scores Overview: used in GameSetup.tsx */}
+              {showScores && (
+                <div className="flex shrink-0 items-baseline gap-1 rounded-full bg-gold/15 px-2.5 py-1">
+                  <span className="font-display text-sm font-bold text-gold">{player.score}</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wide text-gold/70">
+                    {t("playerList.points")}
+                  </span>
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 };

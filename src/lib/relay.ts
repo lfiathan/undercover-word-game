@@ -69,6 +69,7 @@ export class RelayClient {
   private status: RelayStatus = "connecting";
   private stopped = false;
   private sawHost = false;
+  private onVisibility: (() => void) | null = null;
 
   constructor(opts: RelayOptions) {
     this.opts = opts;
@@ -110,7 +111,9 @@ export class RelayClient {
         const client = mqtt.connect(broker.url, {
           clientId: `ucw_${this.opts.selfId}_${Math.random().toString(36).slice(2, 8)}`,
           clean: true,
-          keepalive: 30,
+          // Phones throttle timers in background tabs, which makes a short
+          // keepalive look like a dead connection. 60s rides that out.
+          keepalive: 60,
           reconnectPeriod: 3000,
           connectTimeout: TRANSPORT.connectTimeoutMs,
           will: {
@@ -164,6 +167,7 @@ export class RelayClient {
 
     this.startHeartbeat();
     this.startReaper();
+    this.watchVisibility();
   }
 
   private envelope(type: string, data: unknown): Envelope {
@@ -185,7 +189,8 @@ export class RelayClient {
       .then(async () => {
         const packed = await encryptJson(this.room!, env);
         for (const [id, client] of this.clients) {
-          if (!client.connected) continue;
+          // Both checks: mqtt's own flag, and what we last saw happen.
+          if (!client.connected || !this.connected.has(id)) continue;
           try {
             client.publish(this.outTopic, packed as unknown as Buffer, { qos: 0 });
           } catch (err) {
@@ -226,6 +231,29 @@ export class RelayClient {
       role: env.role,
       data: env.data,
     });
+  }
+
+  /**
+   * Coming back from a locked screen or a background tab, sockets are often
+   * dead without having told anyone. Nudge them awake and announce ourselves
+   * immediately rather than waiting out a heartbeat interval.
+   */
+  private watchVisibility(): void {
+    if (typeof document === "undefined") return;
+    this.onVisibility = () => {
+      if (this.stopped || document.visibilityState !== "visible") return;
+      for (const client of this.clients.values()) {
+        if (!client.connected && !client.reconnecting) {
+          try {
+            client.reconnect();
+          } catch {
+            /* it will retry on its own schedule */
+          }
+        }
+      }
+      this.send("PING", this.opts.heartbeatData?.() ?? {});
+    };
+    document.addEventListener("visibilitychange", this.onVisibility);
   }
 
   private startHeartbeat(): void {
@@ -293,6 +321,10 @@ export class RelayClient {
   }
 
   private teardown(): void {
+    if (this.onVisibility && typeof document !== "undefined") {
+      document.removeEventListener("visibilitychange", this.onVisibility);
+      this.onVisibility = null;
+    }
     if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
     if (this.reaperTimer) clearInterval(this.reaperTimer);
     this.heartbeatTimer = null;

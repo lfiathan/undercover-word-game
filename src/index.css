@@ -4,46 +4,116 @@
 
 @layer base {
   :root {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-    --radius: 0.75rem;
+    /* Midnight violet. Dark enough to make the accents glow, warm enough
+       not to feel like a terminal. */
+    --background: 258 45% 6%;
+    --foreground: 255 30% 97%;
+
+    --card: 256 35% 11%;
+    --card-foreground: 255 30% 97%;
+    --popover: 257 40% 9%;
+    --popover-foreground: 255 30% 97%;
+
+    --primary: 262 83% 66%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 255 25% 17%;
+    --secondary-foreground: 255 30% 97%;
+
+    --muted: 255 22% 18%;
+    --muted-foreground: 255 15% 72%;
+
+    /* Kept as a surface tint: shadcn uses it for hover/focus backgrounds. */
+    --accent: 255 25% 20%;
+    --accent-foreground: 255 30% 97%;
+
+    --destructive: 352 80% 58%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 255 20% 22%;
+    --input: 255 22% 20%;
+    --ring: 262 83% 66%;
+
+    --radius: 1rem;
+
+    /* Brand accents used for gradients, glows and role colours. */
+    --brand: 262 83% 66%;
+    --brand-2: 316 85% 64%;
+    --brand-3: 190 95% 55%;
+    --gold: 42 96% 60%;
   }
 }
 
 @layer base {
   * {
-    @apply border-border selection:bg-white/10 selection:text-white;
+    @apply border-border selection:bg-primary/30 selection:text-white;
   }
-  
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
-    font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
+    font-feature-settings: "ss01", "cv01", "cv02";
+    overscroll-behavior-y: none;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-display tracking-tight;
+  }
+
+  /* Comfortable tap targets on phones without restyling every button. */
+  @media (hover: none) {
+    button, [role="button"] {
+      touch-action: manipulation;
+    }
   }
 }
 
 @layer utilities {
-  .glass-morphism {
-    @apply backdrop-blur-xl bg-white/5 border border-white/10 shadow-[0_4px_12px_-2px_rgba(0,0,0,0.3)];
+  /* The one card treatment everything uses. */
+  .surface {
+    @apply rounded-2xl border border-white/[0.09] bg-white/[0.045] backdrop-blur-xl
+           shadow-[0_18px_50px_-24px_rgba(0,0,0,0.9)];
   }
-  
+
+  .surface-raised {
+    @apply rounded-2xl border border-white/[0.14] bg-white/[0.08] backdrop-blur-xl
+           shadow-[0_24px_60px_-28px_rgba(0,0,0,0.95)];
+  }
+
+  .surface-inset {
+    @apply rounded-xl border border-white/[0.07] bg-black/20;
+  }
+
+  /* Legacy name from upstream, kept so nothing silently loses its styling. */
+  .glass-morphism {
+    @apply surface;
+  }
+
   .text-gradient {
-    @apply bg-gradient-to-br from-white via-white/90 to-white/70 bg-clip-text text-transparent;
+    @apply bg-gradient-to-br from-white via-white to-violet-200/80 bg-clip-text text-transparent;
+  }
+
+  .text-gradient-brand {
+    @apply bg-gradient-to-r from-violet-300 via-fuchsia-300 to-cyan-200 bg-clip-text text-transparent;
+  }
+
+  .glow-brand {
+    box-shadow: 0 14px 40px -14px hsl(var(--brand) / 0.85);
+  }
+
+  .glow-soft {
+    box-shadow: 0 0 0 1px hsl(var(--brand) / 0.25), 0 10px 40px -18px hsl(var(--brand) / 0.7);
+  }
+
+  /* Faint film grain so the big dark areas are not flat. */
+  .grain {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+  }
+
+  .tap-scale {
+    @apply transition-transform duration-150 active:scale-[0.97];
   }
 }

@@ -1,15 +1,21 @@
 import { useGame } from "../context/GameContext";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { usePeer } from "@/context/PeerContext";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
-import { Send } from "lucide-react";
+import { ArrowRight, Send } from "lucide-react";
 import { toast } from "sonner";
 import { useSound } from "@/context/SoundContext";
 import { MrWhiteGuess } from "./shared/MrWhiteGuess";
 import { PlayerList } from "./shared/PlayerList";
 import { useTranslation } from "react-i18next";
+
+const roleTone: Record<string, string> = {
+  civilian: "text-emerald-300",
+  undercover: "text-fuchsia-300",
+  mrwhite: "text-white",
+  spectator: "text-white/60",
+};
 
 export const Results = () => {
   const { gameState, setGameState, submitMrWhiteGuess, eliminatePlayer, checkGameEnd } = useGame();
@@ -20,9 +26,8 @@ export const Results = () => {
   const [showEliminatedCard, setShowEliminatedCard] = useState(false);
   const { t } = useTranslation();
 
-  const currentPlayer = gameState.players.find(p => p.id === peer?.id);
-  const eliminatedPlayer = gameState.players
-    .find(p => p.id === gameState.lastEliminatedId);
+  const currentPlayer = gameState.players.find((p) => p.id === peer?.id);
+  const eliminatedPlayer = gameState.players.find((p) => p.id === gameState.lastEliminatedId);
 
   const playEliminationSound = () => {
     if (gameState.mrWhiteGuess) {
@@ -46,7 +51,7 @@ export const Results = () => {
     if (gameState.lastEliminatedId && gameState.votingResults) {
       // Count votes for each player to determine if there was a tie
       const voteCount: Record<string, number> = {};
-      Object.values(gameState.votingResults).forEach(targetId => {
+      Object.values(gameState.votingResults).forEach((targetId) => {
         voteCount[targetId] = (voteCount[targetId] || 0) + 1;
       });
 
@@ -74,8 +79,9 @@ export const Results = () => {
   const canContinue = isHost && !isMrWhiteGuessing;
 
   // Sort players by speaking order (and filter out eliminated players)
-  const activePlayers = gameState.speakingOrder
-    .map(id => gameState.players.find(p => p.id === id));
+  const activePlayers = gameState.speakingOrder.map((id) =>
+    gameState.players.find((p) => p.id === id),
+  );
 
   const handleGuessSubmit = () => {
     if (!guess.trim()) {
@@ -89,7 +95,7 @@ export const Results = () => {
       // Send guess to host
       sendToHost({
         type: "MR_WHITE_GUESS",
-        guess: guess.trim()
+        guess: guess.trim(),
       });
     }
   };
@@ -109,58 +115,66 @@ export const Results = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 space-y-6 animate-fade-in">
-      <h2 className="text-2xl font-bold text-center mb-4 text-white">
+    <div className="animate-fade-in space-y-5">
+      <h2 className="text-center font-display text-2xl font-bold text-white">
         {t("results.title")}
       </h2>
 
       {showEliminatedCard && eliminatedPlayer && (
-        <Card className="p-6 text-center glass-morphism">
-          <h3 className="text-xl font-bold mb-4 text-white">
-            {currentPlayerGotEliminated
-              ? t("results.eliminatedYou")
-              : t("results.eliminatedPlayer", { name: eliminatedPlayer.name })}
-          </h3>
-          <p className="text-lg mb-2 text-white">
-            {t(
-              currentPlayerGotEliminated
-                ? "results.youWereA"
-                : "results.theyWereA",
-            )}{" "}
-            <span className="font-bold text-primary">
-              {t(`roles.${eliminatedPlayer.role}`)}
-            </span>
-          </p>
-          {eliminatedPlayer.role !== "mrwhite" &&
-            currentPlayer?.isEliminated &&
-            !currentPlayerGotEliminated && (
-              <p className="text-white/80">
-                {t("results.theirWordWas")} {eliminatedPlayer.word}
-              </p>
+        <section className="surface-raised relative overflow-hidden p-6 text-center animate-pop-in">
+          <div className="pointer-events-none absolute inset-x-0 -top-24 h-44 bg-gradient-to-b from-destructive/25 to-transparent blur-3xl" />
+          <div className="relative space-y-3">
+            <h3 className="font-display text-xl font-bold text-white">
+              {currentPlayerGotEliminated
+                ? t("results.eliminatedYou")
+                : t("results.eliminatedPlayer", { name: eliminatedPlayer.name })}
+            </h3>
+
+            <p className="text-sm text-white/55">
+              {t(currentPlayerGotEliminated ? "results.youWereA" : "results.theyWereA")}{" "}
+              <span
+                className={`font-display text-lg font-bold ${
+                  roleTone[eliminatedPlayer.role ?? "spectator"]
+                }`}
+              >
+                {t(`roles.${eliminatedPlayer.role}`)}
+              </span>
+            </p>
+
+            {eliminatedPlayer.role !== "mrwhite" &&
+              currentPlayer?.isEliminated &&
+              !currentPlayerGotEliminated && (
+                <p className="text-sm text-white/50">
+                  {t("results.theirWordWas")}{" "}
+                  <span className="font-semibold text-white/80">{eliminatedPlayer.word}</span>
+                </p>
+              )}
+
+            {isMrWhiteGuessing && currentPlayerGotEliminated && (
+              <div className="space-y-3 pt-2">
+                <p className="text-sm font-medium text-white/70">{t("results.finalGuess")}</p>
+                <div className="flex gap-2">
+                  <Input
+                    value={guess}
+                    onChange={(e) => setGuess(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleGuessSubmit()}
+                    placeholder={t("results.enterGuess")}
+                    autoFocus
+                    className="h-12 flex-1 rounded-xl border-white/10 bg-black/30 text-white placeholder:text-white/25 focus-visible:ring-brand/50"
+                  />
+                  <Button
+                    onClick={handleGuessSubmit}
+                    className="tap-scale h-12 w-12 shrink-0 rounded-xl bg-gradient-to-r from-brand to-brand-two p-0 text-white shadow-lg shadow-brand/25 hover:brightness-110"
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
             )}
 
-          {isMrWhiteGuessing && currentPlayerGotEliminated && (
-            <div className="mt-4 space-y-4">
-              <p className="text-white/80">{t("results.finalGuess")}</p>
-              <div className="flex gap-2">
-                <Input
-                  value={guess}
-                  onChange={(e) => setGuess(e.target.value)}
-                  placeholder={t("results.enterGuess")}
-                  className="flex-1"
-                />
-                <Button
-                  onClick={handleGuessSubmit}
-                  className="bg-primary hover:bg-primary/90"
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          )}
-
-          <MrWhiteGuess />
-        </Card>
+            <MrWhiteGuess />
+          </div>
+        </section>
       )}
 
       <PlayerList
@@ -177,11 +191,11 @@ export const Results = () => {
 
       <Button
         onClick={handleContinue}
-        className="w-full"
         disabled={!canContinue}
-        variant={canContinue ? "default" : "secondary"}
+        className="tap-scale h-14 w-full rounded-2xl bg-gradient-to-r from-brand to-brand-two text-base font-bold text-white shadow-xl shadow-brand/30 hover:brightness-110 disabled:bg-none disabled:bg-white/[0.06] disabled:text-white/40 disabled:shadow-none"
       >
         {t("results.continueGame")}
+        {canContinue && <ArrowRight className="ml-2 h-5 w-5" />}
       </Button>
     </div>
   );
