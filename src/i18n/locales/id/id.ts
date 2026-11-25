@@ -9,9 +9,12 @@ export default {
       continue: "Lanjutkan Permainan",
       start: "Mulai",
     },
+    sound: "Suara",
     language: "Bahasa",
     welcome: "Selamat datang di Undercover",
     multiplayerSetup: {
+      asPlayer: "Main",
+      asVisitor: "Nonton",
       watchGame: "Tonton permainan",
       watchSubtitle: "Ikut menyimak tanpa ikut bermain",
       watchExplainer: "Sebagai penonton kamu tidak ikut bermain dan tidak dapat kata rahasia. Kamu mengikuti permainan seperti yang lain, dan baru tahu peran seseorang kalau dia tereliminasi.",
@@ -33,6 +36,7 @@ export default {
       enterUsernameError: "Masukkan nama kamu dulu!",
     },
     gameSetup: {
+      seatLabel: "Posisi kamu",
       civilians: "warga",
       copy: "Salin tautan",
       share: "Bagikan",

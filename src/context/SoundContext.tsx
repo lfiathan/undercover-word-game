@@ -25,8 +25,18 @@ const PRELOAD = [
   "/sounds/player-joined.mp3",
 ];
 
+const MUTE_KEY = "ucw:muted";
+
+const readMuted = () => {
+  try {
+    return localStorage.getItem(MUTE_KEY) === "1";
+  } catch {
+    return false;
+  }
+};
+
 export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(readMuted);
   const audioCache = useRef(new Map<string, HTMLAudioElement>());
 
   useEffect(() => {
@@ -54,7 +64,16 @@ export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
     [isMuted],
   );
 
-  const toggleMute = () => setIsMuted((prev) => !prev);
+  const toggleMute = () =>
+    setIsMuted((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem(MUTE_KEY, next ? "1" : "0");
+      } catch {
+        /* private mode: the choice just will not stick */
+      }
+      return next;
+    });
 
   return (
     <SoundContext.Provider value={{ playSound, isMuted, toggleMute }}>

@@ -3,6 +3,7 @@ import { usePeer } from "../context/PeerContext";
 import { useTranslation } from "react-i18next";
 import { Eye, Hourglass, Trophy, Users } from "lucide-react";
 import { MrWhiteGuess } from "./shared/MrWhiteGuess";
+import { SeatToggle } from "./shared/SeatToggle";
 import { Player } from "../types/game";
 
 /**
@@ -93,6 +94,8 @@ export const VisitorView = () => {
           {t("visitor.subtitle")}
         </p>
       </header>
+
+      <SeatToggle />
 
       {inLobby && (
         <section className="surface flex flex-wrap items-center justify-center gap-2 p-5 text-sm text-white/45">

@@ -3,12 +3,12 @@ import { usePeer } from "../context/PeerContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { ArrowLeft, Eye, Loader2, LogIn, Sparkles, UserPlus } from "lucide-react";
+import { ArrowLeft, Loader2, LogIn, Sparkles, UserPlus } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { normalizeRoomCode, ROOM_CODE_LENGTH } from "@/lib/roomCode";
 
-type Mode = "menu" | "host" | "join" | "watch";
+type Mode = "menu" | "host" | "join";
 
 export const MultiplayerSetup = () => {
   const { t } = useTranslation();
@@ -30,8 +30,7 @@ export const MultiplayerSetup = () => {
     }
   }, [searchParams]);
 
-  const needsCode = mode === "join" || mode === "watch";
-
+  // Everyone arrives as a player; watching is chosen inside the room.
   const handleSubmit = () => {
     if (!username.trim()) {
       toast.error(t("multiplayerSetup.enterUsernameError"));
@@ -45,22 +44,15 @@ export const MultiplayerSetup = () => {
       toast.error(t("multiplayerSetup.enterGameIdError"));
       return;
     }
-    joinGame(joinId, username.trim(), mode === "watch");
+    joinGame(joinId, username.trim());
   };
 
+  const formTitle =
+    mode === "host" ? t("multiplayerSetup.hostNewGame") : t("multiplayerSetup.joinGame");
   const submitLabel =
     mode === "host"
       ? t("multiplayerSetup.startHosting")
-      : mode === "watch"
-        ? t("multiplayerSetup.startWatching")
-        : t("multiplayerSetup.joinGame");
-
-  const formTitle =
-    mode === "host"
-      ? t("multiplayerSetup.hostNewGame")
-      : mode === "watch"
-        ? t("multiplayerSetup.watchGame")
-        : t("multiplayerSetup.joinGame");
+      : t("multiplayerSetup.joinGame");
 
   return (
     <div className="mx-auto my-auto w-full max-w-md animate-fade-in space-y-8 py-6">
@@ -108,42 +100,15 @@ export const MultiplayerSetup = () => {
               </span>
             </span>
           </button>
-
-          <button
-            onClick={() => setMode("watch")}
-            className="tap-scale group flex w-full items-center gap-4 rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4 text-left transition-colors hover:bg-white/[0.06]"
-          >
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-brand-three/15 text-cyan-200">
-              <Eye className="h-4 w-4" />
-            </span>
-            <span className="min-w-0">
-              <span className="block font-display text-sm font-bold text-white/85">
-                {t("multiplayerSetup.watchGame")}
-              </span>
-              <span className="block text-xs text-white/40">
-                {t("multiplayerSetup.watchSubtitle")}
-              </span>
-            </span>
-          </button>
         </div>
       )}
 
       {mode !== "menu" && (
         <div className="surface animate-pop-in space-y-5 p-6">
           <div className="flex items-center gap-2 text-sm font-semibold text-white/70">
-            {mode === "watch" ? (
-              <Eye className="h-4 w-4 text-brand-three" />
-            ) : (
-              <Sparkles className="h-4 w-4 text-brand" />
-            )}
+            <Sparkles className="h-4 w-4 text-brand" />
             {formTitle}
           </div>
-
-          {mode === "watch" && (
-            <p className="rounded-xl border border-brand-three/20 bg-brand-three/10 p-3 text-xs leading-relaxed text-cyan-100/80">
-              {t("multiplayerSetup.watchExplainer")}
-            </p>
-          )}
 
           <div className="space-y-4">
             <label className="block space-y-1.5">
@@ -162,7 +127,7 @@ export const MultiplayerSetup = () => {
               />
             </label>
 
-            {needsCode && (
+            {mode === "join" && (
               <label className="block space-y-1.5">
                 <span className="text-xs font-medium uppercase tracking-wider text-white/40">
                   {t("multiplayerSetup.enterGameId")}
@@ -189,11 +154,7 @@ export const MultiplayerSetup = () => {
           <Button
             onClick={handleSubmit}
             disabled={isBusy}
-            className={`tap-scale h-12 w-full rounded-xl text-base font-semibold text-white hover:brightness-110 disabled:opacity-60 ${
-              mode === "watch"
-                ? "bg-gradient-to-r from-cyan-500 to-brand shadow-lg shadow-cyan-500/20"
-                : "bg-gradient-to-r from-brand to-brand-two shadow-lg shadow-brand/25"
-            }`}
+            className="tap-scale h-12 w-full rounded-xl bg-gradient-to-r from-brand to-brand-two text-base font-semibold text-white shadow-lg shadow-brand/25 hover:brightness-110 disabled:opacity-60"
           >
             {isBusy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isBusy ? t("multiplayerSetup.connecting") : submitLabel}

@@ -10,8 +10,11 @@ export default {
       start: "Starten",
     },
     welcome: "Willkommen bei Undercover",
+    sound: "Ton",
     language: "Sprache",
     multiplayerSetup: {
+      asPlayer: "Mitspielen",
+      asVisitor: "Zuschauen",
       watchGame: "Spiel zuschauen",
       watchSubtitle: "Mitverfolgen, ohne mitzuspielen",
       watchExplainer: "Als Besucher spielst du nicht mit und bekommst kein geheimes Wort. Du verfolgst die Runde wie alle am Tisch und erfährst die Rolle eines Spielers erst, wenn er herausgewählt wird.",
@@ -33,6 +36,7 @@ export default {
       enterUsernameError: "Bitte gib deinen Benutzernamen ein!",
     },
     gameSetup: {
+      seatLabel: "Dein Platz",
       civilians: "Zivilisten",
       copy: "Link kopieren",
       share: "Teilen",

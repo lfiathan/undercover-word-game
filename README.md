@@ -166,9 +166,14 @@ the link-preview image -- open it at 1200x630 and screenshot it to regenerate
 
 ## Visitors
 
-A visitor watches a room without taking a seat in it: **Watch a game** on the
-start screen, then the room code. They are blind by design -- they see exactly
-what the table sees, and nothing more. No secret word, no roles, no word pair.
+Everyone joins the same way -- the invite link, a name, and you are in as a
+player. The seat is chosen **inside the room**: a Play / Watch switch on the
+lobby screen, which you can flip as often as you like between games. It is
+locked once words are dealt, since a seat change mid-round would mean handing
+out or taking back a role. The host always plays.
+
+A visitor is blind by design -- they see exactly what the table sees, and
+nothing more. No secret word, no roles, no word pair.
 
 What a visitor does see is the public shape of the round: who is playing, the
 speaking order, what each player said, the votes as they land, who gets voted

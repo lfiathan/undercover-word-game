@@ -9,9 +9,12 @@ export default {
       continue: "Continue Game",
       start: "Start",
     },
+    sound: "Sound",
     language: "Language",
     welcome: "Welcome to Undercover",
     multiplayerSetup: {
+      asPlayer: "Play",
+      asVisitor: "Watch",
       watchGame: "Watch a game",
       watchSubtitle: "Follow along without playing",
       watchExplainer: "As a visitor you take no seat and get no secret word. You follow the round like everyone at the table, and you only learn a player's role when they are voted out.",
@@ -33,6 +36,7 @@ export default {
       enterUsernameError: "Please enter your username!",
     },
     gameSetup: {
+      seatLabel: "Your seat",
       civilians: "civilians",
       copy: "Copy link",
       share: "Share",

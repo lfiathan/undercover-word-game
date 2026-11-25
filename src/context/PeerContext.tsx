@@ -47,7 +47,9 @@ interface PeerContextType {
   status: ConnectionStatus;
   isBusy: boolean;
   hostGame: (username: string) => void;
-  joinGame: (roomCode: string, username: string, asVisitor?: boolean) => void;
+  joinGame: (roomCode: string, username: string) => void;
+  /** Switch between playing and watching; only takes effect between games. */
+  setSeat: (asVisitor: boolean) => void;
   leaveGame: () => void;
   sendGameState: (state: GameState) => void;
   sendToHost: (data: Record<string, unknown>) => void;
@@ -58,7 +60,7 @@ const PeerContext = createContext<PeerContextType | undefined>(undefined);
 const SELF_ID_KEY = "ucw:self-id";
 const REJOIN_KEY = "ucw:rejoin";
 
-type Rejoin = { code: string; username: string; asVisitor?: boolean };
+type Rejoin = { code: string; username: string };
 
 function readRejoin(): Rejoin | null {
   try {
@@ -107,6 +109,7 @@ export const PeerProvider = ({ children }: { children: React.ReactNode }) => {
     removePlayer,
     addVisitor,
     removeVisitor,
+    setPlayerSeat,
     submitMrWhiteGuess,
     submitVote,
     submitDescription,
@@ -115,7 +118,6 @@ export const PeerProvider = ({ children }: { children: React.ReactNode }) => {
   const [selfId] = useState(getSelfId);
   const [hostId, setHostId] = useState<string | null>(null);
   const [isHost, setIsHost] = useState(false);
-  const [isVisitor, setIsVisitor] = useState(false);
   const [status, setStatus] = useState<ConnectionStatus>("idle");
   const [isBusy, setIsBusy] = useState(false);
 
@@ -157,7 +159,6 @@ export const PeerProvider = ({ children }: { children: React.ReactNode }) => {
     }
     setHostId(null);
     setIsHost(false);
-    setIsVisitor(false);
     setStatus("idle");
   }, []);
 
@@ -239,17 +240,11 @@ export const PeerProvider = ({ children }: { children: React.ReactNode }) => {
         case "JOIN_GAME": {
           const name = String(data.username ?? t("peer.unknownPlayer"));
 
-          if (data.asVisitor) {
-            const knownVisitor = gameStateRef.current.visitors?.some(
-              (v) => v.id === msg.from,
-            );
-            if (knownVisitor) {
-              broadcastState(gameStateRef.current);
-              break;
-            }
-            playSound("/sounds/player-joined.mp3");
-            addVisitor(name, msg.from);
-            toast.info(t("peer.visitorJoined", { name }));
+          const knownVisitor = gameStateRef.current.visitors?.some(
+            (v) => v.id === msg.from,
+          );
+          if (knownVisitor) {
+            broadcastState(gameStateRef.current);
             break;
           }
 
@@ -261,6 +256,15 @@ export const PeerProvider = ({ children }: { children: React.ReactNode }) => {
           }
           playSound("/sounds/player-joined.mp3");
           addPlayer(name, msg.from);
+          break;
+        }
+        case "SET_SEAT": {
+          const current =
+            gameStateRef.current.players.find((p) => p.id === msg.from)?.name ??
+            gameStateRef.current.visitors?.find((v) => v.id === msg.from)?.name;
+          const seatName = String(data.username ?? current ?? t("peer.unknownPlayer"));
+          setPlayerSeat(msg.from, seatName, Boolean(data.asVisitor));
+          if (data.asVisitor) toast.info(t("peer.visitorJoined", { name: seatName }));
           break;
         }
         case "PING": {
@@ -290,8 +294,8 @@ export const PeerProvider = ({ children }: { children: React.ReactNode }) => {
     },
     [
       addPlayer,
-      addVisitor,
       broadcastState,
+      setPlayerSeat,
       handleDeparture,
       playSound,
       submitDescription,
@@ -392,7 +396,7 @@ export const PeerProvider = ({ children }: { children: React.ReactNode }) => {
   );
 
   const joinGame = useCallback(
-    async (rawCode: string, username: string, asVisitor = false) => {
+    async (rawCode: string, username: string) => {
       if (relayRef.current || isBusy) return;
 
       const code = normalizeRoomCode(rawCode);
@@ -446,11 +450,11 @@ export const PeerProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       let attempts = 0;
-      relay.send("JOIN_GAME", { username, asVisitor });
+      relay.send("JOIN_GAME", { username });
       const retry = setInterval(() => {
         attempts += 1;
         if (attempts > 5) return;
-        relay.send("JOIN_GAME", { username, asVisitor });
+        relay.send("JOIN_GAME", { username });
       }, 3000);
 
       const timeout = new Promise<"timeout">((resolve) =>
@@ -475,16 +479,32 @@ export const PeerProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       // Remember the seat so an accidental refresh can walk straight back in.
-      writeRejoin({ code, username, asVisitor });
+      writeRejoin({ code, username });
       setHostId(code);
       setIsHost(false);
-      setIsVisitor(asVisitor);
-      toast.success(asVisitor ? t("peer.watching") : t("peer.connected"));
+      toast.success(t("peer.connected"));
     },
     [handleClientMessage, isBusy, onStatusChange, selfId, t, teardown],
   );
 
   /* ---------------------------------------------------------------- misc */
+
+  const myName =
+    gameState.players.find((p) => p.id === selfId)?.name ??
+    gameState.visitors?.find((v) => v.id === selfId)?.name ??
+    "";
+  const isVisitor = (gameState.visitors ?? []).some((v) => v.id === selfId);
+
+  const setSeat = useCallback(
+    (asVisitor: boolean) => {
+      if (isHostRef.current) {
+        setPlayerSeat(selfId, myName, asVisitor);
+        return;
+      }
+      relayRef.current?.send("SET_SEAT", { asVisitor, username: myName });
+    },
+    [myName, selfId, setPlayerSeat],
+  );
 
   const leaveGame = useCallback(() => {
     writeRejoin(null);
@@ -522,7 +542,7 @@ export const PeerProvider = ({ children }: { children: React.ReactNode }) => {
     const saved = readRejoin();
     if (saved && !relayRef.current) {
       toast.info(t("peer.rejoining", { code: saved.code }));
-      void joinGame(saved.code, saved.username, saved.asVisitor ?? false);
+      void joinGame(saved.code, saved.username);
     }
 
     // Say goodbye on tab close so the others see you leave immediately.
@@ -549,8 +569,8 @@ export const PeerProvider = ({ children }: { children: React.ReactNode }) => {
         status,
         isBusy,
         hostGame: (username: string) => void hostGame(username),
-        joinGame: (code: string, username: string, asVisitor = false) =>
-          void joinGame(code, username, asVisitor),
+        joinGame: (code: string, username: string) => void joinGame(code, username),
+        setSeat,
         leaveGame,
         sendGameState,
         sendToHost,

@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { WORD_LANGUAGES } from "@/config/wordLanguages";
 import { VisitorStrip } from "./shared/VisitorStrip";
+import { SeatToggle } from "./shared/SeatToggle";
 
 type StepperProps = {
   label: string;
@@ -149,6 +150,7 @@ export const GameSetup = () => {
             showScores={gameState.players.some((p) => p.score > 0)}
           />
           <VisitorStrip />
+          <SeatToggle />
         </div>
 
         <div className="space-y-5">

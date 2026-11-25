@@ -13,6 +13,7 @@ interface GameContextType {
   removePlayer: (id: string) => void;
   addVisitor: (name: string, id: string) => void;
   removeVisitor: (id: string) => void;
+  setPlayerSeat: (id: string, name: string, asVisitor: boolean) => void;
   startGame: () => void;
   setPhase: (phase: GamePhase) => void;
   submitVote: (voterId: string, targetId: string) => void;
@@ -80,6 +81,42 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
     setGameState((prev) => {
       if (!prev.visitors?.some((v) => v.id === id)) return prev;
       return { ...prev, visitors: prev.visitors.filter((v) => v.id !== id) };
+    });
+  };
+
+  /**
+   * Move someone between playing and watching. Only between games: once
+   * words are dealt, a seat change would mean handing out or taking back a
+   * role mid-round.
+   */
+  const setPlayerSeat = (id: string, name: string, asVisitor: boolean) => {
+    setGameState((prev) => {
+      if (prev.phase !== "setup") return prev;
+      const visitors = prev.visitors ?? [];
+
+      if (asVisitor) {
+        if (visitors.some((v) => v.id === id)) return prev;
+        const players = prev.players.filter((p) => p.id !== id);
+        return {
+          ...prev,
+          players,
+          visitors: [...visitors, { id, name }],
+          roleDistribution: calculateDefaultDistribution(players.length),
+        };
+      }
+
+      if (prev.players.some((p) => p.id === id)) return prev;
+      if (prev.players.length >= 10) {
+        toast.error(t("gameSetup.maxPlayers"));
+        return prev;
+      }
+      const players = [...prev.players, { id, name, score: 0 }];
+      return {
+        ...prev,
+        players,
+        visitors: visitors.filter((v) => v.id !== id),
+        roleDistribution: calculateDefaultDistribution(players.length),
+      };
     });
   };
 
@@ -272,9 +309,12 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
     if (activePlayers.length === 0) return state;
 
     const liveIds = new Set(activePlayers.map((p) => p.id));
+    // A vote from someone who has left does not count. A vote *for* someone
+    // who has left still counts as having voted -- it just cannot elect
+    // anyone, since that player is already out of the round.
     const votes = Object.fromEntries(
-      Object.entries(state.votingResults ?? {}).filter(
-        ([voterId, targetId]) => liveIds.has(voterId) && liveIds.has(targetId),
+      Object.entries(state.votingResults ?? {}).filter(([voterId]) =>
+        liveIds.has(voterId),
       ),
     );
 
@@ -284,8 +324,14 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
 
     const voteCount: Record<string, number> = {};
     Object.values(votes).forEach((id) => {
-      voteCount[id] = (voteCount[id] || 0) + 1;
+      if (liveIds.has(id)) voteCount[id] = (voteCount[id] || 0) + 1;
     });
+
+    // Everyone voted, but only for players who have since left: there is
+    // nobody left to eliminate, so the round simply ends.
+    if (Object.keys(voteCount).length === 0) {
+      return { ...state, votingResults: {}, phase: "discussion" };
+    }
 
     const maxVotes = Math.max(...Object.values(voteCount));
     const mostVotedPlayers = Object.entries(voteCount)
@@ -389,6 +435,7 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
         removePlayer,
         addVisitor,
         removeVisitor,
+        setPlayerSeat,
         startGame,
         setPhase,
         submitVote,
